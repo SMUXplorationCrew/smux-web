@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   SMUX design tokens
+   Sampled from the logo; club accents generated in OKLCH at even
+   lightness/chroma with hues spaced clear of the brand orange (~48°).
+   Add missing values here rather than writing arbitrary utilities.
+------------------------------------------------------------------- */
+
+@theme {
+  /* type */
+  --font-display: "Saira Condensed", "Arial Narrow", Impact, sans-serif;
+  --font-body: Barlow, "Helvetica Neue", Arial, sans-serif;
+
+  --text-eyebrow: 0.75rem;      /* 12px  uppercase labels */
+  --text-meta: 0.9375rem;       /* 15px  captions, card blurbs */
+  --text-body: 1.09375rem;      /* 17.5px running copy */
+  --text-lead: 1.1875rem;       /* 19px  hero subcopy */
+  --text-card: 1.5625rem;       /* 25px  card headings */
+  --text-section: 3.125rem;     /* 50px  section headings */
+  --text-hero: 5.125rem;        /* 82px  desktop hero */
+  --text-hero-sm: 2.875rem;     /* 46px  mobile hero */
+
+  --tracking-eyebrow: 0.22em;
+  --tracking-button: 0.09em;
+  --tracking-tight: -0.01em;
+
+  /* neutrals + brand */
+  --color-ink: #231f20;         /* logo black */
+  --color-ink-deep: #161312;    /* dark section grounds */
+  --color-body: #55504d;        /* long-form copy */
+  --color-muted: #77706c;       /* secondary text — do not go lighter */
+  --color-line: #e1ddda;
+  --color-off: #f7f5f3;
+  --color-paper: #ffffff;
+
+  --color-orange: #f4751f;      /* logo orange — CTAs, date badges */
+  --color-orange-text: #cd5811; /* small text: brand orange is 2.83:1 on white */
+  --color-orange-lift: #ff9138; /* accent text on dark grounds */
+
+  /* club accents */
+  --color-diving: #0086a4;
+  --color-kayaking: #2d78bd;
+  --color-trekking: #2a904b;
+  --color-biking: #bc4757;
+  --color-skating: #8160b5;
+  --color-xseed: #9d7200;
+
+  --color-diving-tint: #e4f5fa;
+  --color-kayaking-tint: #e6f1fc;
+  --color-trekking-tint: #e5f4e9;
+  --color-biking-tint: #fbe9ec;
+  --color-skating-tint: #f0eaf9;
+  --color-xseed-tint: #f8f0da;
+
+  /* Runtime club theming. Components use accent/accent-tint and never a club
+     colour directly, so one wrapper attribute themes an entire page. */
+  --color-accent: var(--accent, var(--color-orange));
+  --color-accent-tint: var(--accent-tint, #fdf0e7);
+}
+
+/* Set data-club on the page wrapper; everything downstream follows. */
+[data-club="diving"]   { --accent: #0086a4; --accent-tint: #e4f5fa; }
+[data-club="kayaking"] { --accent: #2d78bd; --accent-tint: #e6f1fc; }
+[data-club="trekking"] { --accent: #2a904b; --accent-tint: #e5f4e9; }
+[data-club="biking"]   { --accent: #bc4757; --accent-tint: #fbe9ec; }
+[data-club="skating"]  { --accent: #8160b5; --accent-tint: #f0eaf9; }
+[data-club="xseed"]    { --accent: #9d7200; --accent-tint: #f8f0da; }
+
+@layer base {
+  body {
+    font-family: var(--font-body);
+    color: var(--color-ink);
+    background: var(--color-paper);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 0.95;
+    text-wrap: balance;
+  }
+  /* Photography carries this site — never let an image overflow its column. */
+  img { max-width: 100%; height: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

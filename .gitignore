@@ -1,0 +1,25 @@
+# --- personal working docs, deliberately not pushed ---
+CLAUDE.md
+SMUX-KICKOFF.md
+
+# --- secrets: never commit these ---
+.env
+.env.*
+!.env.example
+
+# --- dependencies & build output ---
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# --- local machine / editor overrides ---
+.claude/
+.vscode/
+CLAUDE.local.md
+.DS_Store
+Thumbs.db
+
+# --- Payload local media (real uploads live in R2) ---
+/media
