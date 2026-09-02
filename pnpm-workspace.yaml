@@ -26,3 +26,11 @@ minimumReleaseAgeExclude:
   - '@neon/sdk'
   - electron-to-chromium
   - happy-dom
+
+# Transitive dependencies with open advisories and no upstream release yet carrying the
+# fix. Pinned to the first patched version so the vulnerable copy is not installed.
+#   dompurify  — 4 low/medium advisories, patched in 3.4.13
+#   esbuild    — one medium advisory, patched in 0.25.0
+overrides:
+  dompurify: '>=3.4.13'
+  esbuild: '>=0.25.0'
