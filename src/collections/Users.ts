@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { mcOnly } from '@/access'
+import { mcOnly, selfOrMc } from '@/access'
 
 /**
  * Three roles, and the distinction matters for access control:
@@ -23,7 +23,7 @@ export const Users: CollectionConfig = {
     create: mcOnly,
     delete: mcOnly,
     update: mcOnly,
-    read: ({ req: { user } }) => Boolean(user),
+    read: selfOrMc,
     admin: ({ req: { user } }) => user?.role === 'mc' || user?.role === 'editor',
   },
   fields: [

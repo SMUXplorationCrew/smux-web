@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { mcOnly, ownClub, publishedOrSignedIn } from '@/access'
+import { mcOnly, ownClubById, publishedOrSignedIn } from '@/access'
 import { revalidateClub } from '@/hooks/revalidate'
 
 /**
@@ -18,7 +18,7 @@ export const Clubs: CollectionConfig = {
   access: {
     read: publishedOrSignedIn,
     create: mcOnly,
-    update: ownClub,
+    update: ownClubById,
     delete: mcOnly,
   },
   versions: { drafts: true },

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { MediaImage } from '@/components/MediaImage'
+import { SignupLabel } from '@/components/SignupControl'
 import { formatEventWhen } from '@/lib/format'
 import { getSignupStatus } from '@/lib/signupState'
 import type { Club, Event } from '@/payload-types'
@@ -15,7 +16,7 @@ interface EventCardProps {
 
 export const EventCard = ({ event, showClub = true }: EventCardProps) => {
   const club = clubOf(event.club)
-  const { state, label } = getSignupStatus(event)
+  const status = getSignupStatus(event)
 
   return (
     <article
@@ -53,13 +54,9 @@ export const EventCard = ({ event, showClub = true }: EventCardProps) => {
         </p>
         {event.location ? <p className="text-meta text-muted">{event.location}</p> : null}
 
-        <p
-          className={`mt-auto pt-2 font-display text-eyebrow tracking-eyebrow uppercase ${
-            state === 'open' ? 'text-orange-text' : 'text-muted'
-          }`}
-        >
-          {label}
-        </p>
+        {/* Live, not build-time: a static card would otherwise keep showing the state
+            the page happened to be generated with. */}
+        <SignupLabel className="mt-auto pt-2" event={event} initial={status} />
       </div>
     </article>
   )

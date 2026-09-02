@@ -76,7 +76,19 @@ export const getEvents = cache(
       const payload = await getPayloadClient()
       const where: Where = {}
       if (query.clubId) where.club = { equals: query.clubId }
-      if (query.upcoming) where.startsAt = { greater_than_equal: new Date().toISOString() }
+      if (query.upcoming) {
+        /**
+         * "Upcoming" means not finished, not "not started". Filtering on startsAt alone
+         * drops a multi-day trip the moment it begins, hiding it from the home, events,
+         * club and committee pages while it is actually running. Events without an end
+         * time fall back to their start.
+         */
+        const now = new Date().toISOString()
+        where.or = [
+          { endsAt: { greater_than_equal: now } },
+          { and: [{ endsAt: { exists: false } }, { startsAt: { greater_than_equal: now } }] },
+        ]
+      }
 
       const { docs } = await payload.find({
         collection: 'events',

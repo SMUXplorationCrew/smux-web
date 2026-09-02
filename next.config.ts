@@ -31,8 +31,22 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/api/:collection(media|resources)/file/:path*',
+        // Public media only. Filenames are stable — Payload writes a new one on
+        // re-upload — so these can be cached hard and served from the edge.
+        source: '/api/media/file/:path*',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      {
+        /**
+         * Resources are members-only, so they must never enter a shared cache.
+         *
+         * Marked `public` they could be retained by the CDN or a proxy and replayed to
+         * a signed-out visitor, or to a different person entirely, without Payload's
+         * access check ever running again — handing out members-only documents to
+         * anyone who guessed the URL.
+         */
+        source: '/api/resources/file/:path*',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store, max-age=0, must-revalidate' }],
       },
     ]
   },

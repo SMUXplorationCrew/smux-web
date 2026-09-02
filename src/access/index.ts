@@ -31,6 +31,45 @@ export const anyone: Access = () => true
 export const isAuthenticated: Access = ({ req: { user } }) => Boolean(user)
 
 /**
+ * Club-scoped access for the `clubs` collection itself.
+ *
+ * `ownClub` cannot be used here: it filters on a `club` field, and a club document has
+ * no such field — it *is* the club. Payload rejects the query outright with "Cannot
+ * find field for path at club", so an editor could not edit the very page they exist to
+ * maintain. The identity comparison is on the document id instead.
+ */
+export const ownClubById: Access = ({ req: { user } }) => {
+  const u = user as AccessUser | null
+  if (!u) return false
+  if (u.role === 'mc') return true
+  if (u.role !== 'editor') return false
+
+  const clubId = resolveClubId(u.club)
+  if (clubId === null) return false
+
+  return { id: { equals: clubId } }
+}
+
+/** Content roles. Members are signed in but may not author anything. */
+export const isEditorOrMc: Access = ({ req: { user } }) => {
+  const role = (user as AccessUser | null)?.role
+  return role === 'mc' || role === 'editor'
+}
+
+/**
+ * A user may read their own record; the committee may read everyone's.
+ *
+ * A flat `Boolean(user)` would let any signed-in account — including a members-only
+ * one — list every user's email, role and club through the REST or Local API.
+ */
+export const selfOrMc: Access = ({ req: { user } }) => {
+  const u = user as (AccessUser & { id?: number | string }) | null
+  if (!u) return false
+  if (u.role === 'mc') return true
+  return { id: { equals: u.id } }
+}
+
+/**
  * Public read for collections with drafts enabled.
  *
  * CLAUDE.md specifies a flat `read: () => true`, which is right for the pre-rendered

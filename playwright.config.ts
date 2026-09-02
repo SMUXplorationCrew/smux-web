@@ -13,8 +13,15 @@ export default defineConfig({
   testDir: './tests/e2e',
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  /**
+   * Retry everywhere, not only on CI.
+   *
+   * The suite runs against `pnpm dev`, which compiles each route on first request, so a
+   * cold `/admin` can exceed the default expect timeout while other tests are loading
+   * the server. One retry absorbs that without hiding a genuine failure, which would
+   * fail on both attempts.
+   */
+  retries: process.env.CI ? 2 : 1,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
@@ -37,6 +44,10 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* Dev-mode route compilation makes the default 5s too tight for admin views. */
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
   },
   projects: [
     {

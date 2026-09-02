@@ -150,6 +150,73 @@ describe('club editor scoping', () => {
   })
 })
 
+describe('club document editing', () => {
+  // Regression: this collection used `ownClub`, which filters on a `club` field that a
+  // club document does not have. Payload threw "Cannot find field for path at club" and
+  // an editor could not touch their own club page at all. Unit tests cannot catch it —
+  // the query only fails once Postgres tries to resolve the column.
+  it('lets an editor update their own club', async () => {
+    const updated = await payload.update({
+      collection: 'clubs',
+      id: trekkingId,
+      data: { tagline: 'Edited by the Trekking editor' },
+      user: trekkingEditor as never,
+      overrideAccess: false,
+    })
+    expect(updated.tagline).toBe('Edited by the Trekking editor')
+  })
+
+  it('stops that editor updating another club', async () => {
+    await expect(
+      payload.update({
+        collection: 'clubs',
+        id: divingId,
+        data: { tagline: 'Hijacked' },
+        user: trekkingEditor as never,
+        overrideAccess: false,
+      }),
+    ).rejects.toThrow()
+  })
+
+  it('stops a member updating any club', async () => {
+    await expect(
+      payload.update({
+        collection: 'clubs',
+        id: trekkingId,
+        data: { tagline: 'Member edit' },
+        user: memberUser as never,
+        overrideAccess: false,
+      }),
+    ).rejects.toThrow()
+  })
+})
+
+describe('user records', () => {
+  it('does not let a member read other users', async () => {
+    const { docs } = await payload.find({
+      collection: 'users',
+      user: memberUser as never,
+      overrideAccess: false,
+      limit: 100,
+    })
+    // Scoped to self: a flat `true` here leaked every email, role and club assignment.
+    expect(docs.map((d) => d.email)).toEqual(['int-member@smux.test'])
+  })
+})
+
+describe('media authoring', () => {
+  it('does not let a member create media', async () => {
+    await expect(
+      payload.create({
+        collection: 'media',
+        data: { alt: 'member upload attempt' },
+        user: memberUser as never,
+        overrideAccess: false,
+      }),
+    ).rejects.toThrow()
+  })
+})
+
 describe('member role', () => {
   it('cannot update an event even though it is signed in', async () => {
     const own = await eventBySlug('int-test-trekking')

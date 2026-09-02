@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { anyone, isAuthenticated, mcOnly, ownClub, resolveClubId } from '@/access'
+import { anyone, isEditorOrMc, mcOnly, ownClub, resolveClubId } from '@/access'
 
 /**
  * Variants are generated once, on upload. The site then serves plain static files and
@@ -16,7 +16,9 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: anyone,
-    create: isAuthenticated,
+    // Members are signed in but author nothing; uploads cost processing and storage
+    // and they could not edit them afterwards anyway, since update uses ownClub.
+    create: isEditorOrMc,
     update: ownClub,
     delete: mcOnly,
   },
