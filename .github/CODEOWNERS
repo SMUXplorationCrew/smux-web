@@ -1,0 +1,9 @@
+# Every path is owned by the tech-leads team.
+#
+# Paired with "require review from Code Owners" on main, a pull request from anyone
+# outside that team needs a tech lead's approval before it can merge.
+#
+# Deliberately a team rather than a username: handover then means adding the next lead
+# to @SMUXplorationCrew/tech-leads, with no commit to this file and nothing to forget.
+
+* @SMUXplorationCrew/tech-leads

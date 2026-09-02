@@ -161,7 +161,7 @@ import map for no structural gain.
 ### 1. Install
 
 ```bash
-git clone https://github.com/aryan12singh/smux-web.git
+git clone https://github.com/SMUXplorationCrew/smux-web.git
 cd smux-web
 pnpm install
 ```
