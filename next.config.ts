@@ -23,6 +23,19 @@ const nextConfig: NextConfig = {
 
     return webpackConfig
   },
+  /**
+   * Uploaded files never change under a given name — Payload writes a new filename on
+   * re-upload — so they can be cached hard. This is what keeps proxying through the app
+   * cheap: the CDN answers repeat requests and the function runs about once per file.
+   */
+  async headers() {
+    return [
+      {
+        source: '/api/:collection(media|resources)/file/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+    ]
+  },
   turbopack: {
     root: path.resolve(dirname),
   },

@@ -296,6 +296,7 @@ export interface Media {
    * Which club owns this image. Set automatically for club editors.
    */
   club?: (number | null) | Club;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -576,6 +577,7 @@ export interface Resource {
    * Academic year this belongs to, e.g. "AY26/27".
    */
   ay?: string | null;
+  prefix?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -896,6 +898,7 @@ export interface ResourcesSelect<T extends boolean = true> {
   description?: T;
   club?: T;
   ay?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -915,6 +918,7 @@ export interface ResourcesSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   club?: T;
+  prefix?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

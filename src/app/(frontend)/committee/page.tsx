@@ -35,8 +35,7 @@ export default async function CommitteePage() {
               <RichText data={settings.about} />
             ) : (
               <p className="text-body text-copy">
-                The main committee runs SMUX itself — the events that bring all six clubs
-                together.
+                The main committee runs SMUX itself — the events that bring all six clubs together.
               </p>
             )}
           </div>

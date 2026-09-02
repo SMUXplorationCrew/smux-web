@@ -83,7 +83,8 @@ export const MediaImage = ({
   // alt is required at the collection level, so an empty string here means the caller
   // marked this image decorative.
   const alt = doc.alt ?? ''
-  const srcSet = variants.length > 1 ? variants.map((v) => `${v.url} ${v.width}w`).join(', ') : undefined
+  const srcSet =
+    variants.length > 1 ? variants.map((v) => `${v.url} ${v.width}w`).join(', ') : undefined
 
   return (
     <img
