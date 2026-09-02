@@ -408,7 +408,10 @@ export interface Event {
 export interface Album {
   id: number;
   title: string;
-  club: number | Club;
+  /**
+   * Leave empty for a SMUX-wide album.
+   */
+  club?: (number | null) | Club;
   /**
    * Optional — links the album to the trip it came from.
    */

@@ -34,7 +34,10 @@ export default async function GalleryPage() {
                       <Link className="hover:underline" href={`/clubs/${club.slug}`}>
                         {club.name}
                       </Link>
-                    ) : null}
+                    ) : (
+                      // No club means the main committee ran it, for all of SMUX.
+                      'SMUX'
+                    )}
                     {album.date ? ` · ${formatDay(album.date)}` : ''}
                   </p>
                 </header>

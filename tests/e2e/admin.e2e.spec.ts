@@ -45,22 +45,28 @@ test.describe('Admin Panel', () => {
   })
 
   test('can navigate to dashboard', async () => {
-    // First hit compiles the admin route in dev; give it room.
     await page.goto('http://localhost:3000/admin', { waitUntil: 'networkidle' })
-    await expect(page).toHaveURL('http://localhost:3000/admin')
+    // Matched loosely on purpose: an exact-string URL assertion fails the moment
+    // Payload appends a redirect or locale parameter. What matters is that we are on
+    // the dashboard rather than bounced back to the login screen.
+    await expect(page).not.toHaveURL(/\/admin\/login/)
     const dashboardArtifact = page.locator('span[title="Dashboard"]').first()
     await expect(dashboardArtifact).toBeVisible()
   })
 
   test('can navigate to list view', async () => {
-    await page.goto('http://localhost:3000/admin/collections/users')
-    await expect(page).toHaveURL('http://localhost:3000/admin/collections/users')
+    await page.goto('http://localhost:3000/admin/collections/users', {
+      waitUntil: 'networkidle',
+    })
+    await expect(page).toHaveURL(/\/admin\/collections\/users/)
     const listViewArtifact = page.locator('h1', { hasText: 'Users' }).first()
     await expect(listViewArtifact).toBeVisible()
   })
 
   test('can navigate to edit view', async () => {
-    await page.goto('http://localhost:3000/admin/collections/users/create')
+    await page.goto('http://localhost:3000/admin/collections/users/create', {
+      waitUntil: 'networkidle',
+    })
     await expect(page).toHaveURL(/\/admin\/collections\/users\/[a-zA-Z0-9-_]+/)
     const editViewArtifact = page.locator('input[name="email"]')
     await expect(editViewArtifact).toBeVisible()

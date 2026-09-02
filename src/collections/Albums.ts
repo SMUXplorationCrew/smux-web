@@ -26,11 +26,13 @@ export const Albums: CollectionConfig = {
       required: true,
     },
     {
+      // Optional, matching Events: the main committee runs SMUX-wide trips and camps
+      // that belong to no single club.
       name: 'club',
       type: 'relationship',
       relationTo: 'clubs',
-      required: true,
       index: true,
+      admin: { description: 'Leave empty for a SMUX-wide album.' },
       hooks: {
         beforeChange: [
           ({ req: { user }, value }) => {

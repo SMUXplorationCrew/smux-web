@@ -2,7 +2,7 @@ import 'dotenv/config'
 import { getPayload } from 'payload'
 import config from '../payload.config'
 import { CALENDAR_EVENTS, MC_EVENTS } from './calendar-events'
-import { CLUBS, SITE } from './content'
+import { CLUBS, SITE, SMUX_WIDE_ALBUM } from './content'
 import { uploadImage } from './media'
 import { richText } from './richText'
 
@@ -157,6 +157,27 @@ const seed = async () => {
     '../SMUX MC Photo.png',
     'The SMUX main committee, who run SMUX across all six clubs',
   )
+  // The SMUX-wide camp: its mass photo becomes the home hero, and the rest form an
+  // album with no club, which is what puts it under SMUX rather than any one club.
+  console.log('Euphorux Camp…')
+  const campHero = await uploadImage(payload, SMUX_WIDE_ALBUM.hero.file, SMUX_WIDE_ALBUM.hero.alt)
+  const campPhotoIds: number[] = []
+  if (campHero) campPhotoIds.push(campHero.id as number)
+  for (const photo of SMUX_WIDE_ALBUM.photos) {
+    const up = await uploadImage(payload, photo.file, photo.alt)
+    if (up) campPhotoIds.push(up.id as number)
+  }
+  if (campPhotoIds.length > 0) {
+    await payload.create({
+      collection: 'albums',
+      data: {
+        title: SMUX_WIDE_ALBUM.title,
+        date: SMUX_WIDE_ALBUM.date,
+        photos: campPhotoIds,
+      },
+    })
+  }
+
   console.log(`Creating ${MC_EVENTS.length} SMUX-wide events…`)
   for (const event of MC_EVENTS) {
     const startsAt = new Date(`${event.date}T10:00:00+08:00`).toISOString()
@@ -249,6 +270,7 @@ const seed = async () => {
     data: {
       motto: SITE.motto,
       about: richText(...SITE.about),
+      ...(campHero ? { heroImages: [campHero.id as number] } : {}),
       ...(mcPhoto ? { committeePhoto: mcPhoto.id as number } : {}),
       stats: SITE.stats,
       socials: SITE.socials,

@@ -90,6 +90,27 @@ export const SITE = {
   ],
 }
 
+/**
+ * Euphorux Camp — the SMUX-wide camp, run by the main committee rather than one club.
+ *
+ * The mass photo leads: a real photograph of the whole crew is a far better home hero
+ * than a placeholder block or a stock image of somebody else's adventure.
+ */
+export const SMUX_WIDE_ALBUM = {
+  title: 'Euphorux Camp',
+  date: '2026-08-01T00:00:00.000Z',
+  hero: {
+    file: '../Euphorux Camp/Mass Photo.JPG',
+    alt: 'The whole SMUX crew together at Euphorux Camp',
+  },
+  photos: [
+    { file: '../Euphorux Camp/1.jpg', alt: 'Participants at Euphorux Camp' },
+    { file: '../Euphorux Camp/2.jpg', alt: 'Camp activities at Euphorux Camp' },
+    { file: '../Euphorux Camp/3.jpg', alt: 'Teams taking part in Euphorux Camp' },
+    { file: '../Euphorux Camp/4.jpg', alt: 'Group activity at Euphorux Camp' },
+  ],
+}
+
 export const CLUBS: SeedClub[] = [
   {
     slug: 'biking',
