@@ -36,7 +36,7 @@
     "payload": "3.88.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "sharp": "0.34.2"
+    "sharp": "0.35.0"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.11",
