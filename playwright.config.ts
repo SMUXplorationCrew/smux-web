@@ -21,6 +21,17 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    /**
+     * Pin the browser binary when PLAYWRIGHT_CHROMIUM_PATH is set.
+     *
+     * Playwright wants an exact build number and refuses any other; when that download
+     * fails or is incomplete, an already-installed Chrome for Testing works fine for
+     * these smoke tests. Unset, Playwright resolves its own browser as usual.
+     */
+    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH
+      ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH }
+      : {},
+
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://localhost:3000',
 

@@ -23,6 +23,21 @@ export const Media: CollectionConfig = {
   upload: {
     mimeTypes: ['image/*'],
     focalPoint: true,
+    /**
+     * The stored original is capped and re-encoded rather than kept as shot.
+     *
+     * The source library runs to 32MB per photo, none of which is ever served — the
+     * site only ever uses the variants below. Keeping full-resolution DSLR files would
+     * put half a gigabyte into object storage to no benefit. 2560px covers any
+     * retina full-bleed use, and `withoutEnlargement` leaves small images alone.
+     */
+    resizeOptions: {
+      width: 2560,
+      height: 2560,
+      fit: 'inside',
+      withoutEnlargement: true,
+    },
+    formatOptions: { format: 'webp', options: { quality: 82 } },
     imageSizes: [
       {
         name: 'small',

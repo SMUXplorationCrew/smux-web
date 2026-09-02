@@ -12,7 +12,7 @@ export default async function ClubsPage() {
   const clubs = await getClubs()
 
   return (
-    <Section eyebrow="Six clubs" title="Pick your crew">
+    <Section eyebrow="Six clubs" title="Pick your crew" titleAs="h1">
       {clubs.length > 0 ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {clubs.map((club) => (

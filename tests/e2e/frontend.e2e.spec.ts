@@ -52,13 +52,48 @@ test.describe('Frontend', () => {
     await expect(page.getByRole('button', { name: 'Open menu' })).toBeVisible()
   })
 
-  test('page does not scroll horizontally at 390px', async ({ page }) => {
+  // Every route, at the three widths that matter: a small phone, a tablet, and a
+  // laptop. Horizontal overflow is the failure that makes a site feel broken on a
+  // phone, and it only ever shows up on the page that has a wide element on it.
+  const ROUTES = [
+    '/',
+    '/clubs',
+    '/clubs/trekking',
+    '/events',
+    '/calendar',
+    '/gallery',
+    '/about',
+    '/join',
+    '/contact',
+    '/committee',
+  ]
+
+  for (const width of [390, 768, 1280]) {
+    test(`no horizontal overflow at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 })
+
+      for (const path of ROUTES) {
+        await page.goto(`http://localhost:3000${path}`)
+        const overflowBy = await page.evaluate(
+          () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        )
+        expect(overflowBy, `${path} overflows by ${overflowBy}px`).toBeLessThanOrEqual(0)
+      }
+    })
+  }
+
+  test('tap targets on the mobile menu are at least 44px', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('http://localhost:3000')
+    await page.getByRole('button', { name: 'Open menu' }).click()
 
-    const overflows = await page.evaluate(
-      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
-    )
-    expect(overflows, 'home page overflows horizontally at 390px').toBe(false)
+    const links = page.getByRole('navigation', { name: 'Main' }).getByRole('link')
+    const count = await links.count()
+    expect(count).toBeGreaterThan(0)
+
+    for (let i = 0; i < count; i++) {
+      const box = await links.nth(i).boundingBox()
+      expect(box?.height ?? 0, `nav link ${i} is too small to tap`).toBeGreaterThanOrEqual(44)
+    }
   })
 })

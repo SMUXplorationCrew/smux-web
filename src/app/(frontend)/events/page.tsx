@@ -12,7 +12,7 @@ export default async function EventsPage() {
   const [events, clubs] = await Promise.all([getEvents({ upcoming: true, limit: 100 }), getClubs()])
 
   return (
-    <Section eyebrow="What's on" title="Events">
+    <Section eyebrow="What's on" title="Events" titleAs="h1">
       {events.length > 0 ? (
         <EventFilter clubs={clubs} events={events} />
       ) : (

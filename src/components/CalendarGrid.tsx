@@ -78,46 +78,53 @@ export const CalendarGrid = ({ events, initialYear, initialMonth }: CalendarGrid
         </button>
       </div>
 
-      <div className="mt-6 grid grid-cols-7 gap-px border border-line bg-line">
-        {WEEKDAY_LABELS.slice(1)
-          .concat(WEEKDAY_LABELS[0])
-          .map((label) => (
-            <div className="bg-off p-2 text-center" key={label}>
-              <span className="font-display text-eyebrow tracking-eyebrow text-muted uppercase">
-                {label}
-              </span>
-            </div>
-          ))}
+      {/*
+        A seven-column month grid cannot compress below about 50px per cell on a phone,
+        which is narrower than a single event title. Rather than let that push the whole
+        page sideways, the grid keeps a usable minimum width and scrolls within itself.
+      */}
+      <div className="-mx-5 mt-6 overflow-x-auto px-5 md:mx-0 md:px-0">
+        <div className="grid min-w-[42rem] grid-cols-7 gap-px border border-line bg-line">
+          {WEEKDAY_LABELS.slice(1)
+            .concat(WEEKDAY_LABELS[0])
+            .map((label) => (
+              <div className="bg-off p-2 text-center" key={label}>
+                <span className="font-display text-eyebrow tracking-eyebrow text-muted uppercase">
+                  {label}
+                </span>
+              </div>
+            ))}
 
-        {days.map((day) => {
-          const dayEvents = byDay.get(keyFor(day)) ?? []
-          return (
-            <div
-              className="min-h-24 bg-paper p-2"
-              key={keyFor(day)}
-              // The first of the month is offset into its weekday column instead of
-              // being preceded by blank cells, which would need array-index keys.
-              style={day === 1 ? { gridColumnStart: leadingBlanks + 1 } : undefined}
-            >
-              <span className="text-meta text-muted">{day}</span>
-              <ul className="mt-1 flex flex-col gap-1">
-                {dayEvents.map((event) => {
-                  const club = clubOf(event)
-                  return (
-                    <li data-club={club?.accent ?? club?.slug} key={event.id}>
-                      <Link
-                        className="block bg-accent-tint px-1.5 py-1 text-eyebrow text-ink hover:bg-accent hover:text-paper"
-                        href={`/events/${event.slug}`}
-                      >
-                        {event.title}
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          )
-        })}
+          {days.map((day) => {
+            const dayEvents = byDay.get(keyFor(day)) ?? []
+            return (
+              <div
+                className="min-h-24 bg-paper p-2"
+                key={keyFor(day)}
+                // The first of the month is offset into its weekday column instead of
+                // being preceded by blank cells, which would need array-index keys.
+                style={day === 1 ? { gridColumnStart: leadingBlanks + 1 } : undefined}
+              >
+                <span className="text-meta text-muted">{day}</span>
+                <ul className="mt-1 flex flex-col gap-1">
+                  {dayEvents.map((event) => {
+                    const club = clubOf(event)
+                    return (
+                      <li data-club={club?.accent ?? club?.slug} key={event.id}>
+                        <Link
+                          className="block hyphens-auto break-words bg-accent-tint px-1.5 py-1 text-eyebrow text-ink hover:bg-accent hover:text-paper"
+                          href={`/events/${event.slug}`}
+                        >
+                          {event.title}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

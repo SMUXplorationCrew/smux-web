@@ -21,7 +21,7 @@ export default async function CalendarPage() {
   const anchor = nextEvent?.startsAt ? new Date(nextEvent.startsAt) : now
 
   return (
-    <Section eyebrow="Plan ahead" title="Calendar">
+    <Section eyebrow="Plan ahead" title="Calendar" titleAs="h1">
       {events.length > 0 ? (
         <CalendarGrid
           events={events}

@@ -15,7 +15,7 @@ export default async function GalleryPage() {
   const albums = await getAlbums()
 
   return (
-    <Section eyebrow="Past trips" title="Gallery">
+    <Section eyebrow="Past trips" title="Gallery" titleAs="h1">
       {albums.length > 0 ? (
         <div className="flex flex-col gap-14">
           {albums.map((album) => {
