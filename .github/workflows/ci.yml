@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  # A new push supersedes an in-flight run for the same ref.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, lint, unit tests, build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # No `version` here on purpose: the action refuses to run when a version is given
+      # both here and as packageManager in package.json. package.json is the single
+      # source of truth, and Vercel reads the same field.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        # Pure functions — sign-up state and the access rules. No database needed,
+        # which is what makes them worth running on every push.
+        run: pnpm test:unit
+
+      - name: Build
+        # The data helpers fall back to empty results when Postgres is unreachable, so
+        # the build exercises every route without needing credentials in CI. A real
+        # secret would only change the page contents, not whether it compiles.
+        run: pnpm build
+        env:
+          PAYLOAD_SECRET: ci-build-only-not-a-real-secret
+
+# Integration and e2e tests are deliberately absent. Both need a live database — and
+# e2e additionally needs a browser and a running server — so they belong in a workflow
+# with a throwaway Neon branch rather than on every push. Run them locally with
+# `pnpm test` until that exists.
