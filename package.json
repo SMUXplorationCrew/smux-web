@@ -64,6 +64,16 @@
       "esbuild",
       "unrs-resolver",
       "@biomejs/biome"
+    ],
+    "minimumReleaseAgeExclude": [
+      "@aws-sdk/client-s3",
+      "@aws-sdk/lib-storage",
+      "@aws-sdk/s3-request-presigner",
+      "@neon/config",
+      "@neon/env",
+      "@neon/sdk",
+      "electron-to-chromium",
+      "happy-dom"
     ]
   }
 }
