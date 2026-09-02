@@ -1,0 +1,28 @@
+# pnpm settings live here, not in package.json.
+#
+# Recent pnpm no longer reads the "pnpm" field in package.json and ignores it with only
+# a warning — which is easy to miss in build output, and silently dropped both settings
+# below until a deploy failed.
+
+# Packages allowed to run install scripts. sharp matters most: it compiles the image
+# pipeline that generates every WebP variant, and without it uploads cannot be resized.
+onlyBuiltDependencies:
+  - sharp
+  - esbuild
+  - unrs-resolver
+  - '@biomejs/biome'
+
+# The build environment rejects packages published inside a rolling cutoff as
+# supply-chain protection. These were added or updated too recently to pass it: the Neon
+# config packages and the S3 adapter's AWS SDK, plus two transitive dev dependencies.
+# Named individually so the policy stays in force for everything else; they can be
+# dropped once the versions age out.
+minimumReleaseAgeExclude:
+  - '@aws-sdk/client-s3'
+  - '@aws-sdk/lib-storage'
+  - '@aws-sdk/s3-request-presigner'
+  - '@neon/config'
+  - '@neon/env'
+  - '@neon/sdk'
+  - electron-to-chromium
+  - happy-dom
