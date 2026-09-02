@@ -4,6 +4,9 @@ import config from '../../src/payload.config.js'
 export const testUser = {
   email: 'dev@payloadcms.com',
   password: 'test',
+  // The admin e2e test signs in and expects the panel, so this fixture needs a role
+  // that can reach it. `role` defaults to `member`, which deliberately cannot.
+  role: 'mc' as const,
 }
 
 /**

@@ -1,5 +1,8 @@
+import type { Metadata } from 'next'
 import { Barlow, Saira_Condensed } from 'next/font/google'
 import type React from 'react'
+import { Footer } from '@/components/Footer'
+import { Header } from '@/components/Header'
 import './globals.css'
 
 // Loaded as CSS variables rather than by family name: next/font emits a hashed
@@ -18,9 +21,13 @@ const barlow = Barlow({
   display: 'swap',
 })
 
-export const metadata = {
-  description: 'A blank template using Payload in a Next.js app.',
-  title: 'Payload Blank Template',
+export const metadata: Metadata = {
+  title: {
+    default: 'SMUX — SMUXploration Crew',
+    template: '%s · SMUX',
+  },
+  description:
+    'The outdoor and adventure CCA at Singapore Management University. Six clubs: diving, kayaking, trekking, biking, skating and XSeed.',
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
@@ -28,8 +35,10 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
 
   return (
     <html className={`${sairaCondensed.variable} ${barlow.variable}`} lang="en">
-      <body>
-        <main>{children}</main>
+      <body className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   )

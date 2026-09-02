@@ -28,7 +28,9 @@
   /* neutrals + brand */
   --color-ink: #231f20; /* logo black */
   --color-ink-deep: #161312; /* dark section grounds */
-  --color-body: #55504d; /* long-form copy */
+  /* Named "copy", not "body": --text-body already claims the `text-body` utility for
+     the 17.5px size, and a --color-body would silently shadow it. */
+  --color-copy: #55504d; /* long-form copy */
   --color-muted: #77706c; /* secondary text — do not go lighter */
   --color-line: #e1ddda;
   --color-off: #f7f5f3;
@@ -86,6 +88,10 @@
 }
 
 @layer base {
+  :root {
+    /* Header height, shared so the mobile menu can start exactly below it. */
+    --header-h: 4rem;
+  }
   body {
     font-family: var(--font-body);
     color: var(--color-ink);
@@ -105,6 +111,52 @@
   img {
     max-width: 100%;
     height: auto;
+  }
+}
+
+@layer components {
+  /* Editor-authored prose. Rich text arrives as bare tags with no classes to hang
+     utilities on, so its typography is defined once here. */
+  .rich-text {
+    font-size: var(--text-body);
+    color: var(--color-copy);
+    line-height: 1.6;
+  }
+  .rich-text > * + * {
+    margin-top: 1em;
+  }
+  .rich-text h2,
+  .rich-text h3 {
+    color: var(--color-ink);
+    margin-top: 1.6em;
+  }
+  .rich-text h2 {
+    font-size: var(--text-card);
+  }
+  .rich-text h3 {
+    font-size: var(--text-lead);
+  }
+  .rich-text a {
+    color: var(--color-orange-text);
+    text-underline-offset: 0.15em;
+    text-decoration: underline;
+  }
+  .rich-text ul,
+  .rich-text ol {
+    padding-left: 1.4em;
+  }
+  .rich-text ul {
+    list-style: disc;
+  }
+  .rich-text ol {
+    list-style: decimal;
+  }
+  .rich-text li + li {
+    margin-top: 0.4em;
+  }
+  .rich-text strong {
+    font-weight: 600;
+    color: var(--color-ink);
   }
 }
 
