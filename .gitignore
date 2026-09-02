@@ -23,3 +23,15 @@ Thumbs.db
 
 # --- Payload local media (real uploads live in R2) ---
 /media
+
+# --- Next / TypeScript build artefacts ---
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# --- test output ---
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
