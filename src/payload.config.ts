@@ -2,7 +2,14 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import {
+  AlignFeature,
+  ChecklistFeature,
+  FixedToolbarFeature,
+  HeadingFeature,
+  HorizontalRuleFeature,
+  lexicalEditor,
+} from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
@@ -130,7 +137,45 @@ export default buildConfig({
   },
   collections: [Clubs, Events, Albums, People, Pages, Resources, Media, Users],
   globals: [SiteSettings],
-  editor: lexicalEditor(),
+  /**
+   * The editor is configured for people who are not developers and will not read docs.
+   *
+   * FixedToolbarFeature is the important one: the default toolbar only appears once you
+   * have selected text, so someone who has never used this kind of editor sees a plain
+   * box and concludes there is no formatting. A permanent toolbar makes the options
+   * discoverable without anyone being told.
+   *
+   * Headings stop at h2/h3 on purpose. The page title is the h1, and an editor-inserted
+   * second h1 breaks both the document outline and the accessibility of every page it
+   * appears on — a mistake that is invisible in the editor and permanent on the site.
+   */
+  editor: lexicalEditor({
+    /**
+     * Extends the defaults rather than replacing them.
+     *
+     * Passing a bare array replaces the whole feature set, which drops the toolbar
+     * infrastructure along with it — the editor still renders, it just silently has no
+     * formatting controls at all. Taking `defaultFeatures` and adding to it is the only
+     * safe form.
+     */
+    features: ({ defaultFeatures }) => [
+      // Headings are re-declared to stop at h2/h3. The page title is the h1, and an
+      // editor-inserted second h1 breaks the document outline on every page it reaches
+      // — invisible in the editor, permanent on the site.
+      ...defaultFeatures.filter((f) => f.key !== 'heading'),
+      HeadingFeature({ enabledHeadingSizes: ['h2', 'h3'] }),
+
+      // The important one for non-developers: the default toolbar only appears once
+      // text is selected, so someone who has not used this kind of editor sees a plain
+      // box and concludes there is no formatting.
+      FixedToolbarFeature(),
+
+      AlignFeature(),
+      HorizontalRuleFeature(),
+      // "What to bring" is the most common list a club writes.
+      ChecklistFeature(),
+    ],
+  }),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

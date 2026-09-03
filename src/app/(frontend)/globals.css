@@ -158,6 +158,70 @@
     font-weight: 600;
     color: var(--color-ink);
   }
+  .rich-text em {
+    font-style: italic;
+  }
+  .rich-text u {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+  .rich-text s {
+    text-decoration: line-through;
+    color: var(--color-muted);
+  }
+  .rich-text blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding-left: 1em;
+    margin-left: 0;
+    color: var(--color-ink);
+    font-size: var(--text-lead);
+  }
+  .rich-text hr {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+    margin: 2em 0;
+  }
+  /* Checklists: the editor writes these for "what to bring", so they must read as a
+     list of things rather than as interactive controls a visitor can tick. */
+  .rich-text ul[class*="checklist"] {
+    list-style: none;
+    padding-left: 0;
+  }
+  .rich-text ul[class*="checklist"] li {
+    position: relative;
+    padding-left: 1.75em;
+  }
+  .rich-text ul[class*="checklist"] li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.35em;
+    width: 0.9em;
+    height: 0.9em;
+    border: 1.5px solid var(--color-accent);
+    border-radius: 2px;
+  }
+  .rich-text ul[class*="checklist"] li[role="checkbox"][aria-checked="true"]::after {
+    content: "";
+    position: absolute;
+    left: 0.28em;
+    top: 0.45em;
+    width: 0.32em;
+    height: 0.6em;
+    border-right: 2px solid var(--color-accent);
+    border-bottom: 2px solid var(--color-accent);
+    transform: rotate(45deg);
+  }
+  /* Alignment set in the editor. */
+  .rich-text [style*="text-align: center"] {
+    text-align: center;
+  }
+  .rich-text [style*="text-align: right"] {
+    text-align: right;
+  }
+  .rich-text img {
+    margin: 1.5em 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
