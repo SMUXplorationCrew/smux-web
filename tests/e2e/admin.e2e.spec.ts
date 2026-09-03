@@ -35,6 +35,18 @@ test.describe('Admin Panel', () => {
     })
 
     await login({ page, user: testUser })
+
+    /**
+     * Wait for the dashboard to actually render, not merely for the document to load.
+     *
+     * `domcontentloaded` above returns while the admin is still a shell — the panel is a
+     * client-rendered app, so its navigation appears well after that. Warming only the
+     * bundle left the first assertion racing the first paint, which is what made these
+     * tests fail intermittently while the frontend specs shared the dev server.
+     */
+    await expect(page.locator('span[title="Dashboard"]').first()).toBeVisible({
+      timeout: 120_000,
+    })
   })
 
   // Compilation happens in beforeAll, but a cold machine can still be slow.

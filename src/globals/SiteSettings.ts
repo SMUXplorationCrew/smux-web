@@ -19,6 +19,15 @@ export const SiteSettings: GlobalConfig = {
       admin: { description: 'The line under the logo on the home hero.' },
     },
     {
+      // Three words, set as a typographic block on the home page — the wireframe's
+      // "Fun / Family / Adventure" with its "Our Motto!" callout.
+      name: 'mottoWords',
+      type: 'array',
+      maxRows: 4,
+      admin: { description: 'Displayed large, one word per line. Three works best.' },
+      fields: [{ name: 'word', type: 'text', required: true }],
+    },
+    {
       name: 'heroImages',
       type: 'upload',
       relationTo: 'media',
@@ -64,6 +73,7 @@ export const SiteSettings: GlobalConfig = {
         { name: 'instagram', type: 'text' },
         { name: 'website', type: 'text' },
         { name: 'linkedin', type: 'text' },
+        { name: 'tiktok', type: 'text' },
       ],
     },
     {

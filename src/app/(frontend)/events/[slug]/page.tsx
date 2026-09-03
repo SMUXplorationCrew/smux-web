@@ -109,8 +109,14 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               ) : null}
             </dl>
 
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col gap-3">
               <SignupButton className="w-full" event={event} />
+              <a
+                className="inline-flex min-h-11 w-full items-center justify-center border border-line px-6 font-display text-meta tracking-button text-ink uppercase hover:border-accent hover:text-accent"
+                href={`/events/${event.slug}/calendar`}
+              >
+                Add to calendar
+              </a>
             </div>
           </aside>
         </div>

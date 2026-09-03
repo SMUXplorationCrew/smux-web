@@ -1,6 +1,12 @@
 import type { CollectionConfig } from 'payload'
 import { mcOnly, ownClub, publishedOrSignedIn, resolveClubId } from '@/access'
 import { revalidateEvent } from '@/hooks/revalidate'
+import {
+  noPlaceholderWhenPublished,
+  validateEndsAt,
+  validateSignupCloses,
+  validateSpotsTaken,
+} from '@/lib/validation'
 
 export const Events: CollectionConfig = {
   slug: 'events',
@@ -57,7 +63,7 @@ export const Events: CollectionConfig = {
       type: 'row',
       fields: [
         { name: 'startsAt', type: 'date', required: true, admin: { width: '50%' } },
-        { name: 'endsAt', type: 'date', admin: { width: '50%' } },
+        { name: 'endsAt', type: 'date', admin: { width: '50%' }, validate: validateEndsAt },
       ],
     },
     {
@@ -71,10 +77,12 @@ export const Events: CollectionConfig = {
     {
       name: 'location',
       type: 'text',
+      validate: noPlaceholderWhenPublished,
     },
     {
       name: 'cost',
       type: 'text',
+      validate: noPlaceholderWhenPublished,
       admin: {
         description: 'Free text so an unconfirmed price can stay as [BRACKETS].',
       },
@@ -92,6 +100,7 @@ export const Events: CollectionConfig = {
           name: 'spotsTaken',
           type: 'number',
           min: 0,
+          validate: validateSpotsTaken,
           admin: {
             width: '50%',
             description:
@@ -104,6 +113,7 @@ export const Events: CollectionConfig = {
       name: 'signupUrl',
       type: 'text',
       admin: { description: 'The external form. This is the two-tap destination.' },
+      validate: noPlaceholderWhenPublished,
     },
     {
       type: 'row',
@@ -117,6 +127,7 @@ export const Events: CollectionConfig = {
           name: 'signupCloses',
           type: 'date',
           admin: { width: '50%', description: 'At and after this, sign-ups are closed.' },
+          validate: validateSignupCloses,
         },
       ],
     },

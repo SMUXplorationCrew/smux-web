@@ -1044,6 +1044,15 @@ export interface SiteSetting {
    */
   motto?: string | null;
   /**
+   * Displayed large, one word per line. Three works best.
+   */
+  mottoWords?:
+    | {
+        word: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Rotating photos behind the home hero.
    */
   heroImages?: (number | Media)[] | null;
@@ -1095,6 +1104,7 @@ export interface SiteSetting {
     instagram?: string | null;
     website?: string | null;
     linkedin?: string | null;
+    tiktok?: string | null;
   };
   /**
    * Site-wide notice. Hidden unless enabled.
@@ -1113,6 +1123,12 @@ export interface SiteSetting {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   motto?: T;
+  mottoWords?:
+    | T
+    | {
+        word?: T;
+        id?: T;
+      };
   heroImages?: T;
   stats?:
     | T
@@ -1138,6 +1154,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         instagram?: T;
         website?: T;
         linkedin?: T;
+        tiktok?: T;
       };
   banner?:
     | T

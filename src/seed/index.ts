@@ -136,9 +136,16 @@ const seed = async () => {
         club: clubIds.get(event.club) as number,
         startsAt,
         timeTbc: true,
-        location: '[VENUE TBC]',
-        cost: '[COST TBC]',
-        signupUrl: 'https://example.com/[SIGN-UP FORM TO BE LINKED]',
+        /**
+         * Venue, cost and sign-up URL are left empty rather than filled with a
+         * bracketed placeholder.
+         *
+         * [BRACKETS] are for prose, where an unwritten sentence should be greppable.
+         * For these, absence is both more honest and safer: the UI already omits a
+         * missing venue or cost, and an empty signupUrl makes SignupButton render its
+         * disabled state instead of a live button pointing at example.com — which is
+         * strictly worse than no button at all.
+         */
         signupOpens,
         signupCloses,
         description: richText(
@@ -191,9 +198,7 @@ const seed = async () => {
         // No club: run by the main committee for all of SMUX.
         timeTbc: true,
         startsAt,
-        location: '[VENUE TBC]',
-        cost: '[COST TBC]',
-        signupUrl: 'https://example.com/[SIGN-UP FORM TO BE LINKED]',
+        // Left empty for the same reason as the club events above.
         signupOpens: new Date(start.getTime() - 21 * 86400000).toISOString(),
         signupCloses: new Date(start.getTime() - 2 * 86400000).toISOString(),
         description: richText(`${event.title} — a SMUX-wide event. Full details to follow.`),
@@ -270,10 +275,13 @@ const seed = async () => {
     data: {
       motto: SITE.motto,
       about: richText(...SITE.about),
-      ...(campHero ? { heroImages: [campHero.id as number] } : {}),
+      // The carousel needs more than one frame to do anything; the camp set is the
+      // only SMUX-wide photography we have.
+      ...(campPhotoIds.length > 0 ? { heroImages: campPhotoIds.slice(0, 4) as number[] } : {}),
       ...(mcPhoto ? { committeePhoto: mcPhoto.id as number } : {}),
       stats: SITE.stats,
       socials: SITE.socials,
+      mottoWords: SITE.mottoWords.map((word) => ({ word })),
       faqs: SITE.faqs,
       banner: { enabled: false, text: '', url: '' },
     },

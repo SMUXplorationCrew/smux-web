@@ -12,16 +12,29 @@ import type { Club, Event } from '@/payload-types'
  */
 export const EventFilter = ({ events, clubs }: { events: Event[]; clubs: Club[] }) => {
   const [active, setActive] = useState<string | null>(null)
+  const [range, setRange] = useState<'all' | 'week' | 'month'>('all')
 
   const filtered = useMemo(() => {
-    if (!active) return events
-    return events.filter((event) => {
+    // Date first: with 133 events the club chips alone still leave a long list.
+    const now = Date.now()
+    const horizon =
+      range === 'week' ? now + 7 * 86400000 : range === 'month' ? now + 31 * 86400000 : null
+
+    const byDate = horizon
+      ? events.filter((e) => {
+          const t = e.startsAt ? new Date(e.startsAt).getTime() : null
+          return t !== null && t <= horizon
+        })
+      : events
+
+    if (!active) return byDate
+    return byDate.filter((event) => {
       const club = event.club
       const slug = typeof club === 'object' && club !== null ? (club as Club).slug : null
       // Club-less events belong to the main committee, filtered under "SMUX".
       return active === 'smux' ? slug === null : slug === active
     })
-  }, [events, active])
+  }, [events, active, range])
 
   const hasSmuxWide = events.some((e) => !e.club)
 
@@ -73,6 +86,31 @@ export const EventFilter = ({ events, clubs }: { events: Event[]; clubs: Club[] 
             SMUX-wide
           </button>
         ) : null}
+      </fieldset>
+
+      <fieldset className="mt-3 flex flex-wrap gap-2 border-0 p-0">
+        <legend className="sr-only">Filter events by date</legend>
+        {(
+          [
+            ['all', 'Any time'],
+            ['week', 'Next 7 days'],
+            ['month', 'Next month'],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            aria-pressed={range === value}
+            className={`min-h-11 border px-4 font-display text-eyebrow tracking-eyebrow uppercase transition-colors ${
+              range === value
+                ? 'border-ink bg-ink text-paper'
+                : 'border-line text-ink hover:border-ink'
+            }`}
+            key={value}
+            onClick={() => setRange(value)}
+            type="button"
+          >
+            {label}
+          </button>
+        ))}
       </fieldset>
 
       <div className="mt-8">

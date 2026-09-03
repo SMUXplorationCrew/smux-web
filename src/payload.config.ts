@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { buildConfig } from 'payload'
@@ -48,6 +49,31 @@ const databaseUrl =
     ? process.env.DATABASE_URL || process.env.DATABASE_URL_UNPOOLED
     : process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL) ||
   ''
+
+/**
+ * Email, wired the same way as R2: present credentials switch it on, absent ones leave
+ * Payload's console transport in place.
+ *
+ * Without an adapter, a password reset silently does nothing — Payload logs the mail and
+ * moves on, so the first editor who forgets their password is locked out with no
+ * self-service route and no visible error to explain it.
+ */
+const smtpConfigured = Boolean(
+  process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS,
+)
+
+const email = smtpConfigured
+  ? nodemailerAdapter({
+      defaultFromAddress: process.env.SMTP_FROM || 'noreply@smuxplorationcrew.sg',
+      defaultFromName: 'SMUX',
+      transportOptions: {
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT || 587),
+        secure: Number(process.env.SMTP_PORT || 587) === 465,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      },
+    })
+  : undefined
 
 const r2Configured = Boolean(
   process.env.R2_BUCKET &&
@@ -97,6 +123,10 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: {
+      titleSuffix: '· SMUX',
+      description: 'Content management for SMUXploration Crew.',
+    },
   },
   collections: [Clubs, Events, Albums, People, Pages, Resources, Media, Users],
   globals: [SiteSettings],
@@ -118,5 +148,11 @@ export default buildConfig({
     },
   }),
   sharp,
+  ...(email ? { email } : {}),
+  graphQL: {
+    // The playground is a development convenience; in production it is an interactive
+    // schema browser pointed at real data, for no benefit.
+    disablePlaygroundInProduction: true,
+  },
   plugins: [...storagePlugins],
 })

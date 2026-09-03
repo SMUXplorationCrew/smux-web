@@ -3,6 +3,7 @@ import { Barlow, Saira_Condensed } from 'next/font/google'
 import type React from 'react'
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
+import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from '@/lib/site'
 import './globals.css'
 
 // Loaded as CSS variables rather than by family name: next/font emits a hashed
@@ -22,12 +23,21 @@ const barlow = Barlow({
 })
 
 export const metadata: Metadata = {
+  // Absolute base, or Next emits relative OG URLs that crawlers cannot resolve.
+  metadataBase: new URL(siteUrl),
   title: {
-    default: 'SMUX — SMUXploration Crew',
+    default: SITE_NAME,
     template: '%s · SMUX',
   },
-  description:
-    'The outdoor and adventure CCA at Singapore Management University. Six clubs: diving, kayaking, trekking, biking, skating and XSeed.',
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: 'website',
+    siteName: 'SMUX',
+    locale: 'en_SG',
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: { card: 'summary_large_image' },
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {

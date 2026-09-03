@@ -22,8 +22,16 @@ export default defineConfig({
    * fail on both attempts.
    */
   retries: process.env.CI ? 2 : 1,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /**
+   * One worker everywhere, not just on CI.
+   *
+   * The suite runs against `pnpm dev`, which compiles each route on first request in a
+   * single process. Parallel workers make the frontend specs and the admin specs
+   * compete for that compiler, and the admin panel — by far the heaviest route — loses:
+   * its first assertion races its first paint and fails perhaps one run in four.
+   * Serialising costs a little wall time and removes the contention entirely.
+   */
+  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
