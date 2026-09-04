@@ -26,7 +26,7 @@ export const DesktopNav = ({ links }: { links: NavLink[] }) => {
               <Link
                 aria-current={current ? 'page' : undefined}
                 className={`nav-link flex min-h-11 items-center font-display text-eyebrow tracking-eyebrow uppercase transition-colors ${
-                  current ? 'text-orange-text' : 'text-ink hover:text-orange-text'
+                  current ? 'text-accent-text' : 'text-ink hover:text-accent-text'
                 }`}
                 data-current={current ? 'true' : undefined}
                 href={link.href}

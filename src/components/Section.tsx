@@ -39,7 +39,7 @@ export const Section = ({
   <section className={`py-14 md:py-20 ${className}`} id={id}>
     <Container>
       {eyebrow ? (
-        <p className="flex items-center gap-3 font-display text-eyebrow tracking-eyebrow text-accent uppercase">
+        <p className="flex items-center gap-3 font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
           {/* A short accent rule ties the label to the club palette without spending a
               whole coloured band on it. */}
           <span aria-hidden="true" className="h-px w-6 bg-accent" />

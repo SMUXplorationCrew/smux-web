@@ -32,7 +32,7 @@ export default async function CommitteePage() {
     <>
       <section className="border-b border-line bg-off py-14">
         <Container>
-          <p className="flex items-center gap-3 font-display text-eyebrow tracking-eyebrow text-orange-text uppercase">
+          <p className="flex items-center gap-3 font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
             <span aria-hidden="true" className="h-px w-6 bg-orange" />
             {copy?.eyebrow ?? 'Main Committee'}
           </p>

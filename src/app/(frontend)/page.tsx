@@ -123,7 +123,7 @@ export default async function HomePage() {
               ))}
             </div>
             <Link
-              className="group mt-8 inline-flex min-h-11 items-center font-display text-meta tracking-button text-orange-text uppercase"
+              className="group mt-8 inline-flex min-h-11 items-center font-display text-meta tracking-button text-accent-text uppercase"
               href="/events"
             >
               All events

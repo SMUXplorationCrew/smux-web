@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { DesktopNav } from '@/components/DesktopNav'
 import { MobileNav } from '@/components/MobileNav'
 import { resolveNavLinks } from '@/components/nav-links'
+import { SmartLink } from '@/components/SmartLink'
 import { getSiteSettings } from '@/lib/payload'
 import { safeUrl } from '@/lib/url'
 
@@ -16,13 +17,15 @@ export const Header = async () => {
       {banner?.enabled && banner.text ? (
         <div className="bg-ink text-paper">
           <div className="mx-auto flex max-w-7xl items-center justify-center px-5 py-2">
+            {/* SmartLink rather than Link: a banner often points at an external
+                sign-up form, which should open in its own tab. */}
             {bannerHref ? (
-              <Link
+              <SmartLink
                 className="text-meta underline decoration-orange-lift underline-offset-4 transition-colors hover:text-orange-lift"
                 href={bannerHref}
               >
                 {banner.text}
-              </Link>
+              </SmartLink>
             ) : (
               <p className="text-meta">{banner.text}</p>
             )}

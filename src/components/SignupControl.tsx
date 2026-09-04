@@ -58,7 +58,7 @@ export const SignupControl = ({ event, initial, className = '' }: SignupControlP
 
   return (
     <a
-      className={`${base} bg-accent text-paper hover:opacity-90 ${className}`}
+      className={`${base} bg-accent-text text-paper hover:opacity-90 ${className}`}
       href={event.signupUrl}
       rel="noopener noreferrer"
       target="_blank"
@@ -82,7 +82,7 @@ export const SignupLabel = ({
   return (
     <p
       className={`font-display text-eyebrow tracking-eyebrow uppercase ${
-        state === 'open' ? 'text-orange-text' : 'text-muted'
+        state === 'open' ? 'text-accent-text' : 'text-muted'
       } ${className}`}
     >
       {label}

@@ -278,7 +278,7 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <SmartLink
-                className="inline-flex min-h-11 items-center bg-accent px-6 font-display text-meta tracking-button text-paper uppercase transition-transform duration-200 hover:-translate-y-0.5"
+                className="inline-flex min-h-11 items-center bg-accent-text px-6 font-display text-meta tracking-button text-paper uppercase transition-transform duration-200 hover:-translate-y-0.5"
                 href={cta?.buttonUrl || '/join'}
               >
                 {cta?.buttonLabel || 'How to join'}

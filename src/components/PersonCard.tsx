@@ -10,14 +10,19 @@ import type { Person } from '@/payload-types'
  */
 export const PersonCard = ({ person }: { person: Person }) => {
   const contact = person.contact?.trim()
-  const isPlaceholder = Boolean(contact?.startsWith('['))
+
+  /**
+   * Clubs write either an email or a Telegram handle in this one field, so which it is
+   * has to be inferred — but only from something that actually looks like one. The
+   * previous guess sent anything containing an @ to mailto:, which turned
+   * "Telegram: @jo" into `mailto:Telegram: @jo`. Anything unrecognised, a bracketed
+   * placeholder included, is now shown as plain text instead of guessed into a link
+   * that goes nowhere.
+   */
+  const isEmail = Boolean(contact && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact))
+  const isHandle = Boolean(contact && /^@?[\w.]{2,}$/.test(contact))
   const href =
-    contact && !isPlaceholder
-      ? socialHref(
-          contact.includes('@') && !contact.startsWith('@') ? 'email' : 'telegram',
-          contact,
-        )
-      : null
+    contact && (isEmail || isHandle) ? socialHref(isEmail ? 'email' : 'telegram', contact) : null
 
   return (
     <div className="group">
@@ -34,7 +39,7 @@ export const PersonCard = ({ person }: { person: Person }) => {
       <p className="text-meta text-muted">{person.role}</p>
       {href ? (
         <a
-          className="mt-1 inline-flex min-h-11 items-center text-meta break-all text-accent transition-colors hover:underline underline-offset-4"
+          className="mt-1 inline-flex min-h-11 items-center text-meta break-words text-accent-text transition-colors hover:underline underline-offset-4"
           href={href}
           rel="noopener noreferrer"
           target={href.startsWith('mailto:') ? undefined : '_blank'}

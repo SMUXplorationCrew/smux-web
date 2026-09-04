@@ -41,7 +41,7 @@ const BlockHeading = ({
   return (
     <div className="mb-8">
       {eyebrow ? (
-        <p className="font-display text-eyebrow tracking-eyebrow text-accent uppercase">
+        <p className="font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
           {eyebrow}
         </p>
       ) : null}
@@ -125,7 +125,7 @@ export const Blocks = ({ blocks }: { blocks: BlockList }) => {
                           key={card.id ?? card.title}
                         >
                           {body}
-                          <span className="mt-4 font-display text-eyebrow tracking-eyebrow text-accent uppercase">
+                          <span className="mt-4 font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
                             {card.linkLabel || 'Read more'}
                             <span aria-hidden="true" className="arrow ml-1 inline-block">
                               &rarr;
@@ -262,9 +262,15 @@ export const Blocks = ({ blocks }: { blocks: BlockList }) => {
 
           case 'cta': {
             const tone = block.tone ?? 'dark'
+            /**
+             * The accent tone is a tinted ground, not a saturated one. White on the
+             * default orange is 2.83:1 and white on four of the six club accents is
+             * under 4.5:1, so a full-strength accent slab cannot carry body copy in
+             * any palette. The tint carries ink text at about 14:1 in all of them.
+             */
             const ground =
-              tone === 'accent' ? 'bg-accent' : tone === 'quiet' ? 'bg-off' : 'bg-ink-deep'
-            const onDark = tone !== 'quiet'
+              tone === 'accent' ? 'bg-accent-tint' : tone === 'quiet' ? 'bg-off' : 'bg-ink-deep'
+            const onDark = tone === 'dark'
 
             return (
               <section className={`my-10 py-14 md:py-16 ${ground}`} key={block.id}>
@@ -285,11 +291,7 @@ export const Blocks = ({ blocks }: { blocks: BlockList }) => {
                     {block.buttonUrl && block.buttonLabel ? (
                       <SmartLink
                         className={`mt-8 inline-flex min-h-11 items-center px-6 font-display text-meta tracking-button uppercase transition-transform duration-200 hover:-translate-y-0.5 ${
-                          tone === 'accent'
-                            ? 'bg-paper text-ink'
-                            : tone === 'quiet'
-                              ? 'bg-accent text-paper'
-                              : 'bg-orange text-ink'
+                          tone === 'dark' ? 'bg-orange text-ink' : 'bg-ink text-paper'
                         }`}
                         href={block.buttonUrl}
                       >

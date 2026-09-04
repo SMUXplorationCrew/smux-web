@@ -106,7 +106,7 @@ export default async function ResourcesPage() {
                     {resource.description ? (
                       <span className="text-meta text-copy">{resource.description}</span>
                     ) : null}
-                    <span className="font-display text-eyebrow tracking-eyebrow text-accent uppercase">
+                    <span className="font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
                       {club?.name ?? 'All clubs'}
                       {resource.ay ? ` · ${resource.ay}` : ''}
                     </span>

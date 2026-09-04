@@ -38,7 +38,7 @@ export const EventCard = ({ event, showClub = true }: EventCardProps) => {
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         {showClub ? (
-          <span className="font-display text-eyebrow tracking-eyebrow text-accent uppercase">
+          <span className="font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
             {/* No club means the main committee runs it for all of SMUX. */}
             {club?.name ?? 'SMUX'}
           </span>

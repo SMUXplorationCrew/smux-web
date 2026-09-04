@@ -69,32 +69,46 @@
   */
   --color-accent: #f4751f;
   --color-accent-tint: #fdf0e7;
+  /*
+    The accent again, darkened enough to be read at 12px.
+    Brand orange is 2.83:1 on white and the existing --color-orange-text is 4.20:1 —
+    both short of the 4.5:1 that small text needs, and four of the six club accents
+    fail it too. Large type and rules use --color-accent; anything at eyebrow, caption
+    or label size uses this. Measured on both grounds it lands on, white and off-white.
+  */
+  --color-accent-text: #b84d0c;
 }
 
 /* Set data-club on the page wrapper; everything downstream follows. */
 [data-club="diving"] {
   --color-accent: #0086a4;
   --color-accent-tint: #e4f5fa;
+  --color-accent-text: #006479;
 }
 [data-club="kayaking"] {
   --color-accent: #2d78bd;
   --color-accent-tint: #e6f1fc;
+  --color-accent-text: #1f5f99;
 }
 [data-club="trekking"] {
   --color-accent: #2a904b;
   --color-accent-tint: #e5f4e9;
+  --color-accent-text: #1c6d35;
 }
 [data-club="biking"] {
   --color-accent: #bc4757;
   --color-accent-tint: #fbe9ec;
+  --color-accent-text: #a3323f;
 }
 [data-club="skating"] {
   --color-accent: #8160b5;
   --color-accent-tint: #f0eaf9;
+  --color-accent-text: #6a4a9c;
 }
 [data-club="xseed"] {
   --color-accent: #9d7200;
   --color-accent-tint: #f8f0da;
+  --color-accent-text: #7a5a00;
 }
 
 @layer base {

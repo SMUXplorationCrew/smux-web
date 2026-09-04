@@ -20,13 +20,6 @@ export const Footer = async () => {
           {settings?.motto ? (
             <p className="mt-2 text-meta text-paper/70">{settings.motto}</p>
           ) : null}
-          <SocialRow
-            className="mt-5"
-            extra={settings?.extraSocials}
-            onDark
-            socials={settings?.socials}
-            variant="icon"
-          />
         </div>
 
         <nav aria-label="Clubs">
