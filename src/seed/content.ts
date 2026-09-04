@@ -45,6 +45,8 @@ export interface SeedClub {
 
 export const SITE = {
   motto: 'Explore the outdoors. Grow through adventure.',
+  // The wireframe's hand-lettered motto, set as a typographic block on the home page.
+  mottoWords: ['Fun', 'Family', 'Adventure'],
   about: [
     'SMUX is the CCA student constituent body that represents the outdoor and adventure wing of SMU. Established in 2000, we are a tight-knit family of 6 clubs — Biking, Diving, Kayaking, Skating, Trekking and XSeed (board sports).',
     'SMUX prides itself on being inclusive, crafting accessible events catered to students of all experience levels, and offering both local and overseas opportunities to explore the outdoors. Through these avenues, SMUX facilitates personal development and growth through adventure.',

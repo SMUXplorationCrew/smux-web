@@ -1,0 +1,81 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Saira+Condensed:wght@700;800&display=swap");
+
+/*
+  Admin panel styling.
+
+  Its only job is to stop the editor lying. Payload's editor renders in the admin
+  panel's own typeface at its own sizes, so a club editor choosing "Condensed" or a
+  heading saw something quite different from what the site would show — and the whole
+  point of a fixed formatting menu is that the preview is trustworthy.
+
+  This matches the editing surface to the site's type: same two families, same
+  relative scale, same table treatment. It is deliberately limited to the editable
+  area — restyling the rest of the admin panel would be maintenance for no gain.
+*/
+
+$smux-display: "Saira Condensed", "Arial Narrow", Impact, sans-serif;
+$smux-body: "Barlow", "Helvetica Neue", Arial, sans-serif;
+
+.rich-text-lexical [data-lexical-editor] {
+  font-family: $smux-body;
+  /* px, not rem: the admin panel sets its own root font-size (about 13px), so the
+     site's rem values land ~20% small here and the preview stops matching the page. */
+  font-size: 17px;
+  line-height: 1.6;
+
+  h2,
+  h3,
+  h4 {
+    font-family: $smux-display;
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 1.05;
+    margin-top: 1.4em;
+  }
+
+  h2 {
+    font-size: 25px;
+  }
+
+  h3 {
+    font-size: 19px;
+  }
+
+  h4 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  blockquote {
+    border-left: 3px solid #f4751f;
+    padding-left: 1em;
+    margin-left: 0;
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.92em;
+  }
+
+  /* The site scrolls a wide table inside its own box rather than widening the page.
+     Mirroring that here means an editor sees the same constraint while building one,
+     instead of discovering it after publishing. */
+  .lexical-table-container,
+  table {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  th,
+  td {
+    padding: 0.5em 0.7em;
+  }
+
+  th {
+    font-family: $smux-display;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 11px;
+  }
+}

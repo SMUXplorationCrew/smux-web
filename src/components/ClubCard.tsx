@@ -4,7 +4,7 @@ import type { Club } from '@/payload-types'
 
 export const ClubCard = ({ club }: { club: Club }) => (
   <Link
-    className="group relative flex min-h-11 flex-col justify-end overflow-hidden bg-ink-deep"
+    className="group relative flex min-h-11 flex-col justify-end overflow-hidden bg-ink-deep transition-transform duration-300 hover:-translate-y-1"
     data-club={club.accent ?? club.slug}
     href={`/clubs/${club.slug}`}
   >
@@ -23,6 +23,12 @@ export const ClubCard = ({ club }: { club: Club }) => (
     <div className="absolute inset-x-0 bottom-0 border-b-4 border-accent p-4">
       <h3 className="text-card text-paper">{club.name}</h3>
       {club.tagline ? <p className="text-meta text-paper/80">{club.tagline}</p> : null}
+      <span className="mt-2 flex items-center gap-1.5 font-display text-eyebrow tracking-eyebrow text-paper/0 uppercase transition-colors duration-300 group-hover:text-paper/90">
+        Explore
+        <span aria-hidden="true" className="arrow">
+          &rarr;
+        </span>
+      </span>
     </div>
   </Link>
 )

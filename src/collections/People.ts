@@ -7,6 +7,8 @@ export const People: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     defaultColumns: ['name', 'role', 'club', 'ay'],
+    group: 'Content',
+    description: 'Committee members. Leave the club empty for the main committee.',
   },
   access: {
     read: anyone,

@@ -134,6 +134,8 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Everything on your club page. You can only see and edit your own club; changes go live once you press Publish.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "clubs".
  */
@@ -152,12 +154,43 @@ export interface Club {
    * One line, shown under the club name in the hero.
    */
   tagline?: string | null;
-  logo?: (number | null) | Media;
   /**
    * Full-bleed photo behind the club name.
    */
   hero?: (number | null) | Media;
+  /**
+   * Shown beside the club name in the hero.
+   */
+  logo?: (number | null) | Media;
+  /**
+   * The strip under the hero, e.g. "Experience needed / None", "Meets / Wednesdays". Up to four.
+   */
+  quickFacts?:
+    | {
+        label: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
   whoWeAre?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Answers "can I do this with no experience?"
+   */
+  beginnerNotes?: {
     root: {
       type: string;
       children: {
@@ -191,23 +224,8 @@ export interface Club {
     [k: string]: unknown;
   } | null;
   /**
-   * Answers the "New to this?" section.
+   * What to bring, what it costs, what the club lends out.
    */
-  beginnerNotes?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
   gearAndCost?: {
     root: {
       type: string;
@@ -242,12 +260,18 @@ export interface Club {
     [k: string]: unknown;
   } | null;
   /**
-   * The club’s signature events, described generally.
+   * Your signature events, described generally.
    */
   keyEvents?:
     | {
         title: string;
         description: string;
+        id?: string | null;
+      }[]
+    | null;
+  achievements?:
+    | {
+        text: string;
         id?: string | null;
       }[]
     | null;
@@ -258,31 +282,289 @@ export interface Club {
         id?: string | null;
       }[]
     | null;
-  achievements?:
-    | {
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
+  /**
+   * Drag to reorder. The first eight are shown on the page.
+   */
+  gallery?: (number | Media)[] | null;
   socials?: {
     email?: string | null;
     /**
-     * e.g. t.me/smuxdiving
+     * Group or handle, e.g. t.me/smuxdiving or smuxdiving
      */
     telegram?: string | null;
     /**
-     * Handle, without the @
+     * Handle, with or without the @
      */
     instagram?: string | null;
-    facebook?: string | null;
+    /**
+     * Number, e.g. +65 8123 4567
+     */
+    whatsapp?: string | null;
     tiktok?: string | null;
+    youtube?: string | null;
+    facebook?: string | null;
+    linkedin?: string | null;
+    /**
+     * Invite code or full link
+     */
+    discord?: string | null;
     website?: string | null;
+  };
+  /**
+   * Anywhere else people can find you that is not in the list above.
+   */
+  extraSocials?:
+    | {
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  sections?:
+    | (
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richText';
+          }
+        | {
+            image: number | Media;
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            imagePosition?: ('left' | 'right') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'imageText';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            cards?:
+              | {
+                  title: string;
+                  body?: string | null;
+                  icon?: (number | null) | Media;
+                  /**
+                   * Optional. Makes the whole card clickable.
+                   */
+                  linkUrl?: string | null;
+                  /**
+                   * Wording for the link, e.g. "Sign up". Defaults to "Read more".
+                   */
+                  linkLabel?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cards';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            /**
+             * Drag to reorder. Every photo needs alt text when uploaded.
+             */
+            images: (number | Media)[];
+            /**
+             * On phones this is always two, whatever is chosen here.
+             */
+            columns?: ('2' | '3' | '4') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'gallery';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            /**
+             * Sign-up forms, booking sheets, waivers, anything external. Paste the full address.
+             */
+            links?:
+              | {
+                  label: string;
+                  /**
+                   * Include https:// — e.g. https://forms.gle/…
+                   */
+                  url: string;
+                  description?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'linkList';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            items?:
+              | {
+                  question: string;
+                  answer: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  };
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'faq';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            items?:
+              | {
+                  value: string;
+                  label: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stats';
+          }
+        | {
+            quote: string;
+            /**
+             * Who said it.
+             */
+            attribution?: string | null;
+            /**
+             * e.g. "President, AY25/26".
+             */
+            role?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'quote';
+          }
+        | {
+            heading: string;
+            body?: string | null;
+            buttonLabel?: string | null;
+            buttonUrl?: string | null;
+            /**
+             * How loud this section should be.
+             */
+            tone?: ('dark' | 'accent' | 'quiet') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cta';
+          }
+      )[]
+    | null;
+  /**
+   * The band at the very bottom of the page.
+   */
+  joinCta?: {
+    /**
+     * Defaults to "Come along".
+     */
+    heading?: string | null;
+    body?: string | null;
+    buttonLabel?: string | null;
+    /**
+     * Defaults to /join if left empty.
+     */
+    buttonUrl?: string | null;
+  };
+  /**
+   * Rename the built-in sections. Leave any of these empty to keep the standard wording.
+   */
+  labels?: {
+    whoWeAre?: string | null;
+    startHere?: string | null;
+    keyEvents?: string | null;
+    events?: string | null;
+    gallery?: string | null;
+    committee?: string | null;
   };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Every photo on the site. Alt text is required — it is what a screen reader says, and what shows if an image fails to load.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
@@ -336,6 +618,8 @@ export interface Media {
   };
 }
 /**
+ * Dated trips, sessions and socials people sign up for. Editors see only their own club’s.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "events".
  */
@@ -402,6 +686,8 @@ export interface Event {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Photo sets from past trips. They appear in the gallery and on your club page.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "albums".
  */
@@ -425,6 +711,8 @@ export interface Album {
   createdAt: string;
 }
 /**
+ * Committee members. Leave the club empty for the main committee.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "people".
  */
@@ -452,6 +740,8 @@ export interface Person {
   createdAt: string;
 }
 /**
+ * The About, Join and Contact pages. Everything on them is editable here.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
@@ -463,9 +753,24 @@ export interface Page {
    * Short standfirst under the page title.
    */
   intro?: string | null;
+  /**
+   * Optional photo behind the page title. Without one the page opens on a plain band.
+   */
+  heroImage?: (number | null) | Media;
+  /**
+   * Build the page by adding sections. Drag to reorder them.
+   */
   blocks?:
     | (
         | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
             content: {
               root: {
                 type: string;
@@ -508,11 +813,27 @@ export interface Page {
             blockType: 'imageText';
           }
         | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
             cards?:
               | {
                   title: string;
                   body?: string | null;
                   icon?: (number | null) | Media;
+                  /**
+                   * Optional. Makes the whole card clickable.
+                   */
+                  linkUrl?: string | null;
+                  /**
+                   * Wording for the link, e.g. "Sign up". Defaults to "Read more".
+                   */
+                  linkLabel?: string | null;
                   id?: string | null;
                 }[]
               | null;
@@ -521,15 +842,62 @@ export interface Page {
             blockType: 'cards';
           }
         | {
-            heading: string;
-            body?: string | null;
-            buttonLabel?: string | null;
-            buttonUrl?: string | null;
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            /**
+             * Drag to reorder. Every photo needs alt text when uploaded.
+             */
+            images: (number | Media)[];
+            /**
+             * On phones this is always two, whatever is chosen here.
+             */
+            columns?: ('2' | '3' | '4') | null;
             id?: string | null;
             blockName?: string | null;
-            blockType: 'cta';
+            blockType: 'gallery';
           }
         | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            /**
+             * Sign-up forms, booking sheets, waivers, anything external. Paste the full address.
+             */
+            links?:
+              | {
+                  label: string;
+                  /**
+                   * Include https:// — e.g. https://forms.gle/…
+                   */
+                  url: string;
+                  description?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'linkList';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
             items?:
               | {
                   question: string;
@@ -555,6 +923,53 @@ export interface Page {
             blockName?: string | null;
             blockType: 'faq';
           }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            items?:
+              | {
+                  value: string;
+                  label: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stats';
+          }
+        | {
+            quote: string;
+            /**
+             * Who said it.
+             */
+            attribution?: string | null;
+            /**
+             * e.g. "President, AY25/26".
+             */
+            role?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'quote';
+          }
+        | {
+            heading: string;
+            body?: string | null;
+            buttonLabel?: string | null;
+            buttonUrl?: string | null;
+            /**
+             * How loud this section should be.
+             */
+            tone?: ('dark' | 'accent' | 'quiet') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cta';
+          }
       )[]
     | null;
   updatedAt: string;
@@ -562,6 +977,8 @@ export interface Page {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Members-only documents. Not visible to the public.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "resources".
  */
@@ -594,6 +1011,8 @@ export interface Resource {
   focalY?: number | null;
 }
 /**
+ * Who can sign in, and what each of them may change.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -731,11 +1150,18 @@ export interface ClubsSelect<T extends boolean = true> {
   slug?: T;
   accent?: T;
   tagline?: T;
-  logo?: T;
   hero?: T;
+  logo?: T;
+  quickFacts?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        id?: T;
+      };
   whoWeAre?: T;
-  typicalSession?: T;
   beginnerNotes?: T;
+  typicalSession?: T;
   gearAndCost?: T;
   howToJoin?: T;
   keyEvents?:
@@ -745,6 +1171,12 @@ export interface ClubsSelect<T extends boolean = true> {
         description?: T;
         id?: T;
       };
+  achievements?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
   faqs?:
     | T
     | {
@@ -752,21 +1184,161 @@ export interface ClubsSelect<T extends boolean = true> {
         answer?: T;
         id?: T;
       };
-  achievements?:
-    | T
-    | {
-        text?: T;
-        id?: T;
-      };
+  gallery?: T;
   socials?:
     | T
     | {
         email?: T;
         telegram?: T;
         instagram?: T;
-        facebook?: T;
+        whatsapp?: T;
         tiktok?: T;
+        youtube?: T;
+        facebook?: T;
+        linkedin?: T;
+        discord?: T;
         website?: T;
+      };
+  extraSocials?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  sections?:
+    | T
+    | {
+        richText?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        imageText?:
+          | T
+          | {
+              image?: T;
+              content?: T;
+              imagePosition?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cards?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              cards?:
+                | T
+                | {
+                    title?: T;
+                    body?: T;
+                    icon?: T;
+                    linkUrl?: T;
+                    linkLabel?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        gallery?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              images?: T;
+              columns?: T;
+              id?: T;
+              blockName?: T;
+            };
+        linkList?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              links?:
+                | T
+                | {
+                    label?: T;
+                    url?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        faq?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stats?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    value?: T;
+                    label?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        quote?:
+          | T
+          | {
+              quote?: T;
+              attribution?: T;
+              role?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              heading?: T;
+              body?: T;
+              buttonLabel?: T;
+              buttonUrl?: T;
+              tone?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  joinCta?:
+    | T
+    | {
+        heading?: T;
+        body?: T;
+        buttonLabel?: T;
+        buttonUrl?: T;
+      };
+  labels?:
+    | T
+    | {
+        whoWeAre?: T;
+        startHere?: T;
+        keyEvents?: T;
+        events?: T;
+        gallery?: T;
+        committee?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -831,12 +1403,15 @@ export interface PagesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
   intro?: T;
+  heroImage?: T;
   blocks?:
     | T
     | {
         richText?:
           | T
           | {
+              eyebrow?: T;
+              heading?: T;
               content?: T;
               id?: T;
               blockName?: T;
@@ -853,14 +1428,83 @@ export interface PagesSelect<T extends boolean = true> {
         cards?:
           | T
           | {
+              eyebrow?: T;
+              heading?: T;
               cards?:
                 | T
                 | {
                     title?: T;
                     body?: T;
                     icon?: T;
+                    linkUrl?: T;
+                    linkLabel?: T;
                     id?: T;
                   };
+              id?: T;
+              blockName?: T;
+            };
+        gallery?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              images?: T;
+              columns?: T;
+              id?: T;
+              blockName?: T;
+            };
+        linkList?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              links?:
+                | T
+                | {
+                    label?: T;
+                    url?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        faq?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stats?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    value?: T;
+                    label?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        quote?:
+          | T
+          | {
+              quote?: T;
+              attribution?: T;
+              role?: T;
               id?: T;
               blockName?: T;
             };
@@ -871,19 +1515,7 @@ export interface PagesSelect<T extends boolean = true> {
               body?: T;
               buttonLabel?: T;
               buttonUrl?: T;
-              id?: T;
-              blockName?: T;
-            };
-        faq?:
-          | T
-          | {
-              items?:
-                | T
-                | {
-                    question?: T;
-                    answer?: T;
-                    id?: T;
-                  };
+              tone?: T;
               id?: T;
               blockName?: T;
             };
@@ -1034,19 +1666,39 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * The home page, the menu, the footer and the committee page.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "siteSettings".
  */
 export interface SiteSetting {
   id: number;
   /**
-   * The line under the logo on the home hero.
+   * The big line at the top. Defaults to "SMUXploration Crew".
+   */
+  heroHeading?: string | null;
+  /**
+   * The line under it, and in the footer.
    */
   motto?: string | null;
   /**
-   * Rotating photos behind the home hero.
+   * Rotating photos behind the home hero. Drag to reorder.
    */
   heroImages?: (number | Media)[] | null;
+  /**
+   * The buttons on the hero. Leave empty for "Join us" and "What’s on".
+   */
+  heroButtons?:
+    | {
+        label: string;
+        /**
+         * A path like /join, or a full https:// address.
+         */
+        url: string;
+        tone?: ('primary' | 'secondary') | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * The numbers strip, e.g. "6 clubs", "300+ members".
    */
@@ -1058,7 +1710,520 @@ export interface SiteSetting {
       }[]
     | null;
   /**
-   * Who SMUX is. Shown on /about.
+   * Displayed large, one word per line. Three works best.
+   */
+  mottoWords?:
+    | {
+        word: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Rename the home page sections. Empty keeps the standard wording.
+   */
+  homeLabels?: {
+    clubsEyebrow?: string | null;
+    clubsTitle?: string | null;
+    eventsEyebrow?: string | null;
+    eventsTitle?: string | null;
+    socialsTitle?: string | null;
+  };
+  /**
+   * Added to the bottom of the home page, above the socials row.
+   */
+  homeBlocks?:
+    | (
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richText';
+          }
+        | {
+            image: number | Media;
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            imagePosition?: ('left' | 'right') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'imageText';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            cards?:
+              | {
+                  title: string;
+                  body?: string | null;
+                  icon?: (number | null) | Media;
+                  /**
+                   * Optional. Makes the whole card clickable.
+                   */
+                  linkUrl?: string | null;
+                  /**
+                   * Wording for the link, e.g. "Sign up". Defaults to "Read more".
+                   */
+                  linkLabel?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cards';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            /**
+             * Drag to reorder. Every photo needs alt text when uploaded.
+             */
+            images: (number | Media)[];
+            /**
+             * On phones this is always two, whatever is chosen here.
+             */
+            columns?: ('2' | '3' | '4') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'gallery';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            /**
+             * Sign-up forms, booking sheets, waivers, anything external. Paste the full address.
+             */
+            links?:
+              | {
+                  label: string;
+                  /**
+                   * Include https:// — e.g. https://forms.gle/…
+                   */
+                  url: string;
+                  description?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'linkList';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            items?:
+              | {
+                  question: string;
+                  answer: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  };
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'faq';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            items?:
+              | {
+                  value: string;
+                  label: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stats';
+          }
+        | {
+            quote: string;
+            /**
+             * Who said it.
+             */
+            attribution?: string | null;
+            /**
+             * e.g. "President, AY25/26".
+             */
+            role?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'quote';
+          }
+        | {
+            heading: string;
+            body?: string | null;
+            buttonLabel?: string | null;
+            buttonUrl?: string | null;
+            /**
+             * How loud this section should be.
+             */
+            tone?: ('dark' | 'accent' | 'quiet') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cta';
+          }
+      )[]
+    | null;
+  committee?: {
+    /**
+     * Defaults to "Main Committee".
+     */
+    eyebrow?: string | null;
+    /**
+     * Defaults to "The people behind SMUX".
+     */
+    title?: string | null;
+    /**
+     * Shown under the title. Falls back to the About text.
+     */
+    intro?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    /**
+     * Defaults to "Events we run".
+     */
+    eventsTitle?: string | null;
+    /**
+     * Defaults to "The committee".
+     */
+    peopleTitle?: string | null;
+  };
+  /**
+   * Group photo of the main committee.
+   */
+  committeePhoto?: (number | null) | Media;
+  committeeBlocks?:
+    | (
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richText';
+          }
+        | {
+            image: number | Media;
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            imagePosition?: ('left' | 'right') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'imageText';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            cards?:
+              | {
+                  title: string;
+                  body?: string | null;
+                  icon?: (number | null) | Media;
+                  /**
+                   * Optional. Makes the whole card clickable.
+                   */
+                  linkUrl?: string | null;
+                  /**
+                   * Wording for the link, e.g. "Sign up". Defaults to "Read more".
+                   */
+                  linkLabel?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cards';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            /**
+             * Drag to reorder. Every photo needs alt text when uploaded.
+             */
+            images: (number | Media)[];
+            /**
+             * On phones this is always two, whatever is chosen here.
+             */
+            columns?: ('2' | '3' | '4') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'gallery';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            /**
+             * Sign-up forms, booking sheets, waivers, anything external. Paste the full address.
+             */
+            links?:
+              | {
+                  label: string;
+                  /**
+                   * Include https:// — e.g. https://forms.gle/…
+                   */
+                  url: string;
+                  description?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'linkList';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            items?:
+              | {
+                  question: string;
+                  answer: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  };
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'faq';
+          }
+        | {
+            /**
+             * Small label above the heading. Optional.
+             */
+            eyebrow?: string | null;
+            /**
+             * Section heading. Leave empty for an untitled section.
+             */
+            heading?: string | null;
+            items?:
+              | {
+                  value: string;
+                  label: string;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'stats';
+          }
+        | {
+            quote: string;
+            /**
+             * Who said it.
+             */
+            attribution?: string | null;
+            /**
+             * e.g. "President, AY25/26".
+             */
+            role?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'quote';
+          }
+        | {
+            heading: string;
+            body?: string | null;
+            buttonLabel?: string | null;
+            buttonUrl?: string | null;
+            /**
+             * How loud this section should be.
+             */
+            tone?: ('dark' | 'accent' | 'quiet') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cta';
+          }
+      )[]
+    | null;
+  /**
+   * The links in the header and footer, in order. Leave empty to keep the standard menu. /resources is deliberately not listed — it is members-only.
+   */
+  nav?:
+    | {
+        label: string;
+        /**
+         * A path like /clubs, or a full https:// address.
+         */
+        href: string;
+        id?: string | null;
+      }[]
+    | null;
+  footer?: {
+    /**
+     * The small line at the very bottom. Defaults to "SMUXploration Crew, Singapore Management University."
+     */
+    note?: string | null;
+  };
+  /**
+   * A strip above the menu on every page. Hidden unless enabled.
+   */
+  banner?: {
+    enabled?: boolean | null;
+    text?: string | null;
+    url?: string | null;
+  };
+  /**
+   * Who SMUX is. Used as the committee page intro if that is empty.
    */
   about?: {
     root: {
@@ -1076,10 +2241,6 @@ export interface SiteSetting {
     [k: string]: unknown;
   } | null;
   /**
-   * Group photo of the main committee, shown on /committee.
-   */
-  committeePhoto?: (number | null) | Media;
-  /**
    * SMUX-wide questions, as opposed to a single club’s.
    */
   faqs?:
@@ -1089,21 +2250,31 @@ export interface SiteSetting {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Shown on the home page, the footer and the contact page.
+   */
   socials?: {
     email?: string | null;
     telegram?: string | null;
     instagram?: string | null;
-    website?: string | null;
+    whatsapp?: string | null;
+    tiktok?: string | null;
+    youtube?: string | null;
+    facebook?: string | null;
     linkedin?: string | null;
+    discord?: string | null;
+    website?: string | null;
   };
   /**
-   * Site-wide notice. Hidden unless enabled.
+   * Anywhere else that is not in the list above.
    */
-  banner?: {
-    enabled?: boolean | null;
-    text?: string | null;
-    url?: string | null;
-  };
+  extraSocials?:
+    | {
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1112,8 +2283,17 @@ export interface SiteSetting {
  * via the `definition` "siteSettings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
+  heroHeading?: T;
   motto?: T;
   heroImages?: T;
+  heroButtons?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        tone?: T;
+        id?: T;
+      };
   stats?:
     | T
     | {
@@ -1121,8 +2301,283 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         label?: T;
         id?: T;
       };
-  about?: T;
+  mottoWords?:
+    | T
+    | {
+        word?: T;
+        id?: T;
+      };
+  homeLabels?:
+    | T
+    | {
+        clubsEyebrow?: T;
+        clubsTitle?: T;
+        eventsEyebrow?: T;
+        eventsTitle?: T;
+        socialsTitle?: T;
+      };
+  homeBlocks?:
+    | T
+    | {
+        richText?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        imageText?:
+          | T
+          | {
+              image?: T;
+              content?: T;
+              imagePosition?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cards?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              cards?:
+                | T
+                | {
+                    title?: T;
+                    body?: T;
+                    icon?: T;
+                    linkUrl?: T;
+                    linkLabel?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        gallery?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              images?: T;
+              columns?: T;
+              id?: T;
+              blockName?: T;
+            };
+        linkList?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              links?:
+                | T
+                | {
+                    label?: T;
+                    url?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        faq?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stats?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    value?: T;
+                    label?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        quote?:
+          | T
+          | {
+              quote?: T;
+              attribution?: T;
+              role?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              heading?: T;
+              body?: T;
+              buttonLabel?: T;
+              buttonUrl?: T;
+              tone?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  committee?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        intro?: T;
+        eventsTitle?: T;
+        peopleTitle?: T;
+      };
   committeePhoto?: T;
+  committeeBlocks?:
+    | T
+    | {
+        richText?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        imageText?:
+          | T
+          | {
+              image?: T;
+              content?: T;
+              imagePosition?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cards?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              cards?:
+                | T
+                | {
+                    title?: T;
+                    body?: T;
+                    icon?: T;
+                    linkUrl?: T;
+                    linkLabel?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        gallery?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              images?: T;
+              columns?: T;
+              id?: T;
+              blockName?: T;
+            };
+        linkList?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              links?:
+                | T
+                | {
+                    label?: T;
+                    url?: T;
+                    description?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        faq?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        stats?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    value?: T;
+                    label?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        quote?:
+          | T
+          | {
+              quote?: T;
+              attribution?: T;
+              role?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              heading?: T;
+              body?: T;
+              buttonLabel?: T;
+              buttonUrl?: T;
+              tone?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  nav?:
+    | T
+    | {
+        label?: T;
+        href?: T;
+        id?: T;
+      };
+  footer?:
+    | T
+    | {
+        note?: T;
+      };
+  banner?:
+    | T
+    | {
+        enabled?: T;
+        text?: T;
+        url?: T;
+      };
+  about?: T;
   faqs?:
     | T
     | {
@@ -1136,15 +2591,20 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         email?: T;
         telegram?: T;
         instagram?: T;
-        website?: T;
+        whatsapp?: T;
+        tiktok?: T;
+        youtube?: T;
+        facebook?: T;
         linkedin?: T;
+        discord?: T;
+        website?: T;
       };
-  banner?:
+  extraSocials?:
     | T
     | {
-        enabled?: T;
-        text?: T;
+        label?: T;
         url?: T;
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;

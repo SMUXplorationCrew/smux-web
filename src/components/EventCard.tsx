@@ -20,13 +20,14 @@ export const EventCard = ({ event, showClub = true }: EventCardProps) => {
 
   return (
     <article
-      className="group flex flex-col bg-paper ring-1 ring-line"
+      className="group flex flex-col border border-line bg-paper transition-[border-color,transform] duration-300 hover:-translate-y-1 hover:border-accent"
       // Themes the card to its own club when it appears in a mixed list.
       data-club={showClub ? (club?.accent ?? undefined) : undefined}
     >
       <Link className="relative block overflow-hidden" href={`/events/${event.slug}`}>
         <div className="relative aspect-[3/2] w-full">
           <MediaImage
+            className="transition-transform duration-500 group-hover:scale-[1.04]"
             fill
             media={event.cover}
             placeholderLabel={club?.name ?? 'SMUX'}
@@ -37,7 +38,7 @@ export const EventCard = ({ event, showClub = true }: EventCardProps) => {
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         {showClub ? (
-          <span className="font-display text-eyebrow tracking-eyebrow text-accent uppercase">
+          <span className="font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
             {/* No club means the main committee runs it for all of SMUX. */}
             {club?.name ?? 'SMUX'}
           </span>

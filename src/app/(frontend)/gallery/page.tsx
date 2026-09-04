@@ -29,7 +29,7 @@ export default async function GalleryPage() {
               <article data-club={club?.accent ?? club?.slug} key={album.id}>
                 <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line pb-3">
                   <h3 className="text-card">{album.title}</h3>
-                  <p className="font-display text-eyebrow tracking-eyebrow text-accent uppercase">
+                  <p className="font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
                     {club ? (
                       <Link className="hover:underline" href={`/clubs/${club.slug}`}>
                         {club.name}

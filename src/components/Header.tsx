@@ -1,21 +1,31 @@
 import Link from 'next/link'
+import { DesktopNav } from '@/components/DesktopNav'
 import { MobileNav } from '@/components/MobileNav'
-import { NAV_LINKS } from '@/components/nav-links'
+import { resolveNavLinks } from '@/components/nav-links'
+import { SmartLink } from '@/components/SmartLink'
 import { getSiteSettings } from '@/lib/payload'
+import { safeUrl } from '@/lib/url'
 
 export const Header = async () => {
   const settings = await getSiteSettings()
   const banner = settings?.banner
+  const links = resolveNavLinks(settings?.nav)
+  const bannerHref = safeUrl(banner?.url)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-paper">
+    <header className="site-header sticky top-0 z-50 border-b border-line bg-paper">
       {banner?.enabled && banner.text ? (
         <div className="bg-ink text-paper">
           <div className="mx-auto flex max-w-7xl items-center justify-center px-5 py-2">
-            {banner.url ? (
-              <Link className="text-meta underline underline-offset-2" href={banner.url}>
+            {/* SmartLink rather than Link: a banner often points at an external
+                sign-up form, which should open in its own tab. */}
+            {bannerHref ? (
+              <SmartLink
+                className="text-meta underline decoration-orange-lift underline-offset-4 transition-colors hover:text-orange-lift"
+                href={bannerHref}
+              >
                 {banner.text}
-              </Link>
+              </SmartLink>
             ) : (
               <p className="text-meta">{banner.text}</p>
             )}
@@ -24,28 +34,14 @@ export const Header = async () => {
       ) : null}
 
       <div className="mx-auto flex h-[var(--header-h)] max-w-7xl items-center justify-between px-5">
-        <Link className="flex min-h-11 items-center" href="/">
+        <Link aria-label="SMUX home" className="flex min-h-11 items-center" href="/">
           <span className="font-display text-card tracking-tight text-ink uppercase">
             SMU<span className="text-orange-text">X</span>
           </span>
         </Link>
 
-        <nav aria-label="Main" className="hidden md:block">
-          <ul className="flex items-center gap-6">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link
-                  className="flex min-h-11 items-center font-display text-eyebrow tracking-eyebrow text-ink uppercase hover:text-orange-text"
-                  href={link.href}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <MobileNav links={NAV_LINKS} />
+        <DesktopNav links={links} />
+        <MobileNav links={links} />
       </div>
     </header>
   )

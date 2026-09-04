@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
+import { Blocks } from '@/components/Blocks'
 import { EventCard } from '@/components/EventCard'
 import { MediaImage } from '@/components/MediaImage'
+import { PersonCard } from '@/components/PersonCard'
+import { Reveal } from '@/components/Reveal'
 import { RichText } from '@/components/RichText'
 import { Container, EmptyState, Section } from '@/components/Section'
 import { getEvents, getPeople, getSiteSettings } from '@/lib/payload'
@@ -21,18 +24,22 @@ export default async function CommitteePage() {
 
   const mcPeople = people.filter((p) => !p.club)
   const smuxWide = allEvents.filter((e) => !e.club)
+  const copy = settings?.committee
+  // The About text stands in until the committee writes an intro of its own.
+  const intro = copy?.intro ?? settings?.about
 
   return (
     <>
       <section className="border-b border-line bg-off py-14">
         <Container>
-          <p className="font-display text-eyebrow tracking-eyebrow text-orange-text uppercase">
-            Main Committee
+          <p className="flex items-center gap-3 font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
+            <span aria-hidden="true" className="h-px w-6 bg-orange" />
+            {copy?.eyebrow ?? 'Main Committee'}
           </p>
-          <h1 className="mt-2 text-section">The people behind SMUX</h1>
+          <h1 className="mt-3 text-section">{copy?.title ?? 'The people behind SMUX'}</h1>
           <div className="mt-4 max-w-3xl">
-            {settings?.about ? (
-              <RichText data={settings.about} />
+            {intro ? (
+              <RichText data={intro} />
             ) : (
               <p className="text-body text-copy">
                 The main committee runs SMUX itself — the events that bring all six clubs together.
@@ -44,17 +51,19 @@ export default async function CommitteePage() {
 
       {settings?.committeePhoto ? (
         <Container className="pt-10">
-          <MediaImage
-            className="w-full"
-            media={settings.committeePhoto}
-            placeholderLabel="Main committee"
-            sizes="(max-width: 1280px) 100vw, 1280px"
-            priority
-          />
+          <Reveal>
+            <MediaImage
+              className="w-full"
+              media={settings.committeePhoto}
+              placeholderLabel="Main committee"
+              priority
+              sizes="(max-width: 1280px) 100vw, 1280px"
+            />
+          </Reveal>
         </Container>
       ) : null}
 
-      <Section eyebrow="SMUX-wide" title="Events we run">
+      <Section eyebrow="SMUX-wide" title={copy?.eventsTitle ?? 'Events we run'}>
         {smuxWide.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {smuxWide.map((event) => (
@@ -66,22 +75,11 @@ export default async function CommitteePage() {
         )}
       </Section>
 
-      <Section className="bg-off" eyebrow="Who we are" title="The committee">
+      <Section className="bg-off" eyebrow="Who we are" title={copy?.peopleTitle ?? 'The committee'}>
         {mcPeople.length > 0 ? (
           <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
             {mcPeople.map((person) => (
-              <div key={person.id}>
-                <div className="relative aspect-[3/4] overflow-hidden bg-accent-tint">
-                  <MediaImage
-                    fill
-                    media={person.photo}
-                    placeholderLabel={person.name}
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                  />
-                </div>
-                <p className="mt-3 font-display text-lead uppercase">{person.name}</p>
-                <p className="text-meta text-muted">{person.role}</p>
-              </div>
+              <PersonCard key={person.id} person={person} />
             ))}
           </div>
         ) : (
@@ -91,6 +89,8 @@ export default async function CommitteePage() {
           </EmptyState>
         )}
       </Section>
+
+      <Blocks blocks={settings?.committeeBlocks} />
     </>
   )
 }
