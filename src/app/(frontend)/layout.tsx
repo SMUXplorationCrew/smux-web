@@ -3,6 +3,7 @@ import { Barlow, Saira_Condensed } from 'next/font/google'
 import type React from 'react'
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
+import { RevealObserver } from '@/components/RevealObserver'
 import { SITE_DESCRIPTION, SITE_NAME, siteUrl } from '@/lib/site'
 import './globals.css'
 
@@ -44,11 +45,36 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
   return (
-    <html className={`${sairaCondensed.variable} ${barlow.variable}`} lang="en">
+    // suppressHydrationWarning covers the data-js attribute the script below sets:
+    // React did not render it, and without this it warns on every page.
+    <html
+      className={`${sairaCondensed.variable} ${barlow.variable}`}
+      lang="en"
+      suppressHydrationWarning
+    >
       <body className="flex min-h-screen flex-col">
+        {/*
+          Marks that JavaScript is running, before anything paints.
+          Scroll-in animations hide their subject only under this attribute, so a
+          visitor with JS disabled or broken gets a fully visible page rather than a
+          blank one waiting on an observer that will never run.
+        */}
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: a fixed literal with no interpolation, which has to execute before first paint — next/script cannot run that early.
+          dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.js='1'" }}
+        />
+        <a
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[60] focus:bg-ink focus:px-4 focus:py-2 focus:font-display focus:text-meta focus:text-paper focus:uppercase"
+          href="#main"
+        >
+          Skip to content
+        </a>
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1" id="main">
+          {children}
+        </main>
         <Footer />
+        <RevealObserver />
       </body>
     </html>
   )

@@ -1,10 +1,19 @@
 import Link from 'next/link'
+import { Blocks } from '@/components/Blocks'
 import { ClubCard } from '@/components/ClubCard'
 import { EventCard } from '@/components/EventCard'
 import { HeroCarousel } from '@/components/HeroCarousel'
+import { Reveal } from '@/components/Reveal'
 import { Container, EmptyState, Section } from '@/components/Section'
+import { SmartLink } from '@/components/SmartLink'
 import { SocialRow } from '@/components/SocialRow'
 import { getClubs, getEvents, getSiteSettings } from '@/lib/payload'
+
+/** The buttons the hero ships with, used until the committee sets their own. */
+const DEFAULT_BUTTONS = [
+  { label: 'Join us', url: '/join', tone: 'primary' as const, id: 'default-join' },
+  { label: 'What’s on', url: '/events', tone: 'secondary' as const, id: 'default-events' },
+]
 
 export default async function HomePage() {
   const [settings, clubs, events] = await Promise.all([
@@ -15,6 +24,8 @@ export default async function HomePage() {
 
   const heroImages = Array.isArray(settings?.heroImages) ? settings.heroImages : []
   const mottoWords = settings?.mottoWords ?? []
+  const labels = settings?.homeLabels
+  const buttons = settings?.heroButtons?.length ? settings.heroButtons : DEFAULT_BUTTONS
 
   return (
     <>
@@ -26,23 +37,28 @@ export default async function HomePage() {
         </div>
 
         <Container className="relative py-16">
-          <h1 className="max-w-4xl text-hero-sm text-paper md:text-hero">SMUXploration Crew</h1>
-          <p className="mt-4 max-w-xl text-lead text-paper/85">
-            {settings?.motto ?? 'Six clubs. One crew. Get outside.'}
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              className="inline-flex min-h-11 items-center bg-orange px-6 font-display text-meta tracking-button text-ink uppercase hover:opacity-90"
-              href="/join"
-            >
-              Join us
-            </Link>
-            <Link
-              className="inline-flex min-h-11 items-center border border-paper/40 px-6 font-display text-meta tracking-button text-paper uppercase hover:bg-paper/10"
-              href="/events"
-            >
-              What&rsquo;s on
-            </Link>
+          <div className="hero-enter">
+            <h1 className="max-w-4xl text-hero-sm text-paper md:text-hero">
+              {settings?.heroHeading ?? 'SMUXploration Crew'}
+            </h1>
+            <p className="mt-4 max-w-xl text-lead text-paper/85">
+              {settings?.motto ?? 'Six clubs. One crew. Get outside.'}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {buttons.map((button) => (
+                <SmartLink
+                  className={`inline-flex min-h-11 items-center px-6 font-display text-meta tracking-button uppercase transition-transform duration-200 hover:-translate-y-0.5 ${
+                    button.tone === 'secondary'
+                      ? 'border border-paper/40 text-paper hover:bg-paper/10'
+                      : 'bg-orange text-ink'
+                  }`}
+                  href={button.url}
+                  key={button.id ?? button.url}
+                >
+                  {button.label}
+                </SmartLink>
+              ))}
+            </div>
           </div>
         </Container>
       </section>
@@ -50,11 +66,11 @@ export default async function HomePage() {
       {settings?.stats?.length ? (
         <section className="border-b border-line bg-off">
           <Container className="grid grid-cols-2 gap-6 py-10 md:grid-cols-4">
-            {settings.stats.map((stat) => (
-              <div key={stat.id ?? stat.label}>
-                <p className="font-display text-section text-ink">{stat.value}</p>
+            {settings.stats.map((stat, index) => (
+              <Reveal delay={index * 60} key={stat.id ?? stat.label}>
+                <p className="font-display text-section text-ink tabular-nums">{stat.value}</p>
                 <p className="text-meta text-muted">{stat.label}</p>
-              </div>
+              </Reveal>
             ))}
           </Container>
         </section>
@@ -79,7 +95,10 @@ export default async function HomePage() {
         </Section>
       ) : null}
 
-      <Section eyebrow="Six clubs" title="Find your thing">
+      <Section
+        eyebrow={labels?.clubsEyebrow ?? 'Six clubs'}
+        title={labels?.clubsTitle ?? 'Find your thing'}
+      >
         {clubs.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             {clubs.map((club) => (
@@ -91,7 +110,11 @@ export default async function HomePage() {
         )}
       </Section>
 
-      <Section className="bg-off" eyebrow="What's on" title="Upcoming">
+      <Section
+        className="bg-off"
+        eyebrow={labels?.eventsEyebrow ?? "What's on"}
+        title={labels?.eventsTitle ?? 'Upcoming'}
+      >
         {events.length > 0 ? (
           <>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -100,10 +123,13 @@ export default async function HomePage() {
               ))}
             </div>
             <Link
-              className="mt-8 inline-flex min-h-11 items-center font-display text-meta tracking-button text-orange-text uppercase"
+              className="group mt-8 inline-flex min-h-11 items-center font-display text-meta tracking-button text-orange-text uppercase"
               href="/events"
             >
-              All events →
+              All events
+              <span aria-hidden="true" className="arrow ml-2 inline-block">
+                &rarr;
+              </span>
             </Link>
           </>
         ) : (
@@ -111,8 +137,10 @@ export default async function HomePage() {
         )}
       </Section>
 
-      <Section title="And more from our socials">
-        <SocialRow socials={settings?.socials} />
+      <Blocks blocks={settings?.homeBlocks} />
+
+      <Section title={labels?.socialsTitle ?? 'And more from our socials'}>
+        <SocialRow extra={settings?.extraSocials} socials={settings?.socials} variant="chip" />
       </Section>
     </>
   )

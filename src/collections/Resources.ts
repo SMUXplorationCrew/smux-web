@@ -17,6 +17,8 @@ export const Resources: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'club', 'ay', 'updatedAt'],
+    group: 'Files',
+    description: 'Members-only documents. Not visible to the public.',
   },
   access: {
     read: isAuthenticated,

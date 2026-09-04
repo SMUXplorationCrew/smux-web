@@ -20,6 +20,7 @@ and XSeed — under one site, with each club maintaining its own content.
 
 - [What the site does](#what-the-site-does)
 - [Architecture](#architecture)
+- [What each role can edit](#what-each-role-can-edit)
 - [Rules the code follows](#rules-the-code-follows)
 - [Repository layout](#repository-layout)
 - [Local setup](#local-setup)
@@ -107,6 +108,58 @@ the club — so it compares on document id via `ownClubById`.
 
 ---
 
+## What each role can edit
+
+Nothing on the public site is hardcoded copy that only a developer can change. Every
+heading, photo, link and block of text below is a CMS field, and where one is left empty
+the site falls back to the wording it ships with — so a half-filled CMS produces a
+finished-looking page, not a blank one.
+
+| | **Club editor** | **Main committee** |
+|---|---|---|
+| Own club page | everything on it | everything on it |
+| Own club's events, albums, people, resources | yes | yes |
+| Other clubs | no — invisible in the admin panel | yes |
+| Home page, menu, footer, committee page | no | yes |
+| About / Join / Contact | no | yes |
+| Accounts and roles | no | yes |
+
+### What "everything on it" means for a club page
+
+Under **Clubs → your club**, arranged in tabs:
+
+- **Top of page** — hero photo, logo, the facts strip under the hero, who you are
+- **For new members** — no-experience notes, what a session looks like, gear and cost,
+  how to join
+- **What we do** — signature events, achievements, FAQs
+- **Photos** — the past-trips strip, chosen and ordered by hand
+- **Contact** — ten platforms, plus a free list for anything not on it
+- **Extra sections** — anything the fixed sections do not cover, built from blocks;
+  also the closing call to action, and overrides for the built-in section headings
+
+### Sections editors can add without code
+
+Available on club pages, the editorial pages, the home page and the committee page:
+
+`Text` · `Image + text` · `Card row` · `Photo grid` · `Link list` · `FAQ` ·
+`Numbers strip` · `Quote` · `Call to action`
+
+**Link list** is the one to reach for when a sign-up form, booking sheet or waiver needs
+to go somewhere on the page. Every URL an editor types — here, in a card, a button or a
+menu entry — passes through `safeUrl` in [src/lib/url.ts](src/lib/url.ts) before it
+becomes an `href`, which accepts paths, `https:`, `mailto:` and `tel:` and rejects
+everything else.
+
+### Social links
+
+Editors are not expected to type URLs consistently. `t.me/smuxdiving`, `@smuxdiving`,
+`smuxdiving` and the full `https://` form all resolve to the same link, in
+[src/lib/socials.ts](src/lib/socials.ts) — one place, rather than each component
+guessing. Ten platforms have their own icon; anything else goes in **extra socials**
+with a label and shows a generic link glyph.
+
+---
+
 ## Rules the code follows
 
 1. **Every public page is pre-rendered.** No page queries the database at request time.
@@ -129,6 +182,7 @@ the club — so it compares on document id via `ownClubById`.
 .agents/             Neon agent skills, installed by `neon skills`
 src/
 ├── access/          access rules shared by every collection      ← backend
+├── blocks/          the section palette editors build pages from  ← backend
 ├── collections/     Clubs, Events, Albums, People, Pages,        ← backend
 │                    Resources, Media, Users
 ├── globals/         SiteSettings                                  ← backend

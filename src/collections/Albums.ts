@@ -8,6 +8,8 @@ export const Albums: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'club', 'event', 'updatedAt'],
+    group: 'Content',
+    description: 'Photo sets from past trips. They appear in the gallery and on your club page.',
   },
   access: {
     read: anyone,

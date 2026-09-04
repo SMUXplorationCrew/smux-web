@@ -13,6 +13,9 @@ export const Events: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'club', 'startsAt', 'signupOpens'],
+    group: 'Content',
+    description:
+      'Dated trips, sessions and socials people sign up for. Editors see only their own club’s.',
   },
   access: {
     read: publishedOrSignedIn,

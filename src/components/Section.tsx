@@ -1,4 +1,5 @@
 import type React from 'react'
+import { Reveal } from '@/components/Reveal'
 
 /** Page-width container. One place to change the site's measure. */
 export const Container = ({
@@ -14,6 +15,8 @@ interface SectionProps {
   /** Small uppercase label above the heading. */
   eyebrow?: string
   title?: string
+  /** One sentence under the heading, for sections that need a line of context. */
+  intro?: string | null
   className?: string
   id?: string
   /**
@@ -28,6 +31,7 @@ export const Section = ({
   children,
   eyebrow,
   title,
+  intro,
   className = '',
   id,
   titleAs = 'h2',
@@ -35,18 +39,22 @@ export const Section = ({
   <section className={`py-14 md:py-20 ${className}`} id={id}>
     <Container>
       {eyebrow ? (
-        <p className="font-display text-eyebrow tracking-eyebrow text-orange-text uppercase">
+        <p className="flex items-center gap-3 font-display text-eyebrow tracking-eyebrow text-accent uppercase">
+          {/* A short accent rule ties the label to the club palette without spending a
+              whole coloured band on it. */}
+          <span aria-hidden="true" className="h-px w-6 bg-accent" />
           {eyebrow}
         </p>
       ) : null}
       {title ? (
         titleAs === 'h1' ? (
-          <h1 className="mt-2 text-section">{title}</h1>
+          <h1 className="mt-3 text-section">{title}</h1>
         ) : (
-          <h2 className="mt-2 text-section">{title}</h2>
+          <h2 className="mt-3 text-section">{title}</h2>
         )
       ) : null}
-      <div className={eyebrow || title ? 'mt-8' : ''}>{children}</div>
+      {intro ? <p className="mt-3 max-w-2xl text-lead text-copy">{intro}</p> : null}
+      <Reveal className={eyebrow || title || intro ? 'mt-8' : ''}>{children}</Reveal>
     </Container>
   </section>
 )

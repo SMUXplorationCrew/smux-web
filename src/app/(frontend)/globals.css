@@ -55,36 +55,46 @@
   --color-skating-tint: #f0eaf9;
   --color-xseed-tint: #f8f0da;
 
-  /* Runtime club theming. Components use accent/accent-tint and never a club
-     colour directly, so one wrapper attribute themes an entire page. */
-  --color-accent: var(--accent, var(--color-orange));
-  --color-accent-tint: var(--accent-tint, #fdf0e7);
+  /*
+    Runtime club theming. Components use accent/accent-tint and never a club colour
+    directly, so one wrapper attribute themes an entire page.
+
+    These are literal values, not `var(--accent, …)` indirection. A custom property is
+    resolved on the element that declares it, so `--color-accent: var(--accent, orange)`
+    declared here would resolve against :root — where --accent is never set — and every
+    descendant would inherit the already-computed orange. Setting --accent further down
+    the tree could not change it, which made the whole data-club mechanism inert.
+    Overriding --color-accent itself, on the element carrying data-club, is what
+    actually re-resolves it for that subtree.
+  */
+  --color-accent: #f4751f;
+  --color-accent-tint: #fdf0e7;
 }
 
 /* Set data-club on the page wrapper; everything downstream follows. */
 [data-club="diving"] {
-  --accent: #0086a4;
-  --accent-tint: #e4f5fa;
+  --color-accent: #0086a4;
+  --color-accent-tint: #e4f5fa;
 }
 [data-club="kayaking"] {
-  --accent: #2d78bd;
-  --accent-tint: #e6f1fc;
+  --color-accent: #2d78bd;
+  --color-accent-tint: #e6f1fc;
 }
 [data-club="trekking"] {
-  --accent: #2a904b;
-  --accent-tint: #e5f4e9;
+  --color-accent: #2a904b;
+  --color-accent-tint: #e5f4e9;
 }
 [data-club="biking"] {
-  --accent: #bc4757;
-  --accent-tint: #fbe9ec;
+  --color-accent: #bc4757;
+  --color-accent-tint: #fbe9ec;
 }
 [data-club="skating"] {
-  --accent: #8160b5;
-  --accent-tint: #f0eaf9;
+  --color-accent: #8160b5;
+  --color-accent-tint: #f0eaf9;
 }
 [data-club="xseed"] {
-  --accent: #9d7200;
-  --accent-tint: #f8f0da;
+  --color-accent: #9d7200;
+  --color-accent-tint: #f8f0da;
 }
 
 @layer base {
@@ -221,6 +231,130 @@
   }
   .rich-text img {
     margin: 1.5em 0;
+  }
+}
+
+@layer base {
+  /* Anchors and the skip link must not land underneath the sticky header. */
+  html {
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+  /* Keyboard focus has to be visible on both the paper and the near-black grounds,
+     so it is drawn as an outline rather than a background change. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-orange);
+    color: var(--color-ink);
+  }
+}
+
+@layer components {
+  /* ----------------------------------------------------------------------
+     Motion.
+
+     Everything here is a response to something the reader did — scrolling to a
+     section, pointing at a link, opening a question. Nothing loops, drifts or
+     plays on its own, and every rule degrades to a still page rather than to a
+     faster version of itself.
+  ---------------------------------------------------------------------- */
+
+  /*
+    Reveal-on-scroll. The subject is visible in the HTML and is hidden only once
+    the inline script in the layout has set data-js, which is also the signal that
+    something exists to un-hide it again. With JS off, or under reduced motion,
+    these selectors never match and the page is simply a page.
+  */
+  [data-reveal] {
+    transition:
+      opacity 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    [data-js="1"] [data-reveal="idle"] {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    /* One entrance, on the copy over the hero photo, on first paint only. */
+    [data-js="1"] .hero-enter {
+      animation: hero-enter 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    }
+  }
+
+  @keyframes hero-enter {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* The header earns a shadow once the page has scrolled under it. Driven by the
+     scroll position itself, so it costs no JavaScript and no scroll listener. */
+  @supports (animation-timeline: scroll()) {
+    .site-header {
+      animation: header-shadow linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 96px;
+    }
+  }
+
+  @keyframes header-shadow {
+    to {
+      box-shadow: 0 10px 24px -20px rgb(35 31 32 / 0.55);
+    }
+  }
+
+  /* An arrow that leans in the direction it points when its link is hovered. */
+  .arrow {
+    transition: transform 0.2s ease;
+  }
+  .group:hover .arrow,
+  a:hover .arrow {
+    transform: translateX(3px);
+  }
+
+  /* Current and hovered menu items grow a rule under themselves. */
+  .nav-link {
+    position: relative;
+  }
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.6rem;
+    height: 1.5px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.22s ease;
+  }
+  .nav-link:hover::after,
+  .nav-link[data-current="true"]::after {
+    transform: scaleX(1);
+  }
+
+  /* FAQ rows. The default disclosure triangle is nearly invisible next to a line
+     of uppercase display type, so the marker is replaced with a + that turns into
+     an x when the answer is open. */
+  .faq summary {
+    list-style: none;
+  }
+  .faq summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq .chevron {
+    font-size: var(--text-card);
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+  .faq[open] .chevron {
+    transform: rotate(45deg);
   }
 }
 

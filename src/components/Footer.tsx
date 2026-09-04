@@ -1,10 +1,14 @@
 import Link from 'next/link'
-import { NAV_LINKS } from '@/components/nav-links'
+import { resolveNavLinks } from '@/components/nav-links'
+import { SocialRow } from '@/components/SocialRow'
 import { getClubs, getSiteSettings } from '@/lib/payload'
+
+const DEFAULT_NOTE = 'SMUXploration Crew, Singapore Management University.'
 
 export const Footer = async () => {
   const [settings, clubs] = await Promise.all([getSiteSettings(), getClubs()])
-  const socials = settings?.socials
+  const links = resolveNavLinks(settings?.nav)
+  const year = new Date().getFullYear()
 
   return (
     <footer className="mt-24 bg-ink-deep text-paper">
@@ -16,6 +20,13 @@ export const Footer = async () => {
           {settings?.motto ? (
             <p className="mt-2 text-meta text-paper/70">{settings.motto}</p>
           ) : null}
+          <SocialRow
+            className="mt-5"
+            extra={settings?.extraSocials}
+            onDark
+            socials={settings?.socials}
+            variant="icon"
+          />
         </div>
 
         <nav aria-label="Clubs">
@@ -27,7 +38,7 @@ export const Footer = async () => {
               clubs.map((club) => (
                 <li key={club.id}>
                   <Link
-                    className="flex min-h-11 items-center text-meta text-paper/85 hover:text-orange-lift"
+                    className="flex min-h-11 items-center text-meta text-paper/85 transition-colors hover:text-orange-lift"
                     href={`/clubs/${club.slug}`}
                   >
                     {club.name}
@@ -45,10 +56,10 @@ export const Footer = async () => {
             Explore
           </h2>
           <ul className="mt-3 flex flex-col">
-            {NAV_LINKS.map((link) => (
+            {links.map((link) => (
               <li key={link.href}>
                 <Link
-                  className="flex min-h-11 items-center text-meta text-paper/85 hover:text-orange-lift"
+                  className="flex min-h-11 items-center text-meta text-paper/85 transition-colors hover:text-orange-lift"
                   href={link.href}
                 >
                   {link.label}
@@ -62,50 +73,20 @@ export const Footer = async () => {
           <h2 className="font-display text-eyebrow tracking-eyebrow text-paper/60 uppercase">
             Get in touch
           </h2>
-          <ul className="mt-3 flex flex-col">
-            {socials?.email ? (
-              <li>
-                <a
-                  className="flex min-h-11 items-center text-meta text-paper/85 hover:text-orange-lift"
-                  href={`mailto:${socials.email}`}
-                >
-                  {socials.email}
-                </a>
-              </li>
-            ) : null}
-            {socials?.telegram ? (
-              <li>
-                <a
-                  className="flex min-h-11 items-center text-meta text-paper/85 hover:text-orange-lift"
-                  href={`https://${socials.telegram.replace(/^https?:\/\//, '')}`}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  {socials.telegram}
-                </a>
-              </li>
-            ) : null}
-            {socials?.instagram ? (
-              <li>
-                <a
-                  className="flex min-h-11 items-center text-meta text-paper/85 hover:text-orange-lift"
-                  href={`https://instagram.com/${socials.instagram.replace(/^@/, '')}`}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  @{socials.instagram.replace(/^@/, '')}
-                </a>
-              </li>
-            ) : null}
-          </ul>
+          <SocialRow
+            className="mt-3"
+            extra={settings?.extraSocials}
+            onDark
+            socials={settings?.socials}
+            variant="inline"
+          />
         </div>
       </div>
 
       <div className="border-t border-paper/15">
-        <div className="mx-auto max-w-7xl px-5 py-6">
-          <p className="text-meta text-paper/50">
-            SMUXploration Crew, Singapore Management University.
-          </p>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-5 py-6">
+          <p className="text-meta text-paper/50">{settings?.footer?.note || DEFAULT_NOTE}</p>
+          <p className="text-meta text-paper/40">&copy; {year}</p>
         </div>
       </div>
     </footer>

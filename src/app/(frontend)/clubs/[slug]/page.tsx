@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Blocks } from '@/components/Blocks'
 import { EventCard } from '@/components/EventCard'
 import { MediaImage } from '@/components/MediaImage'
+import { PersonCard } from '@/components/PersonCard'
+import { Reveal } from '@/components/Reveal'
 import { RichText } from '@/components/RichText'
 import { Container, EmptyState, Section } from '@/components/Section'
+import { SmartLink } from '@/components/SmartLink'
+import { SocialRow } from '@/components/SocialRow'
 import { getAlbums, getClubBySlug, getClubs, getEvents, getPeople } from '@/lib/payload'
 import type { Media } from '@/payload-types'
 
@@ -26,6 +30,9 @@ export async function generateMetadata({
   return { title: club.name, description: club.tagline ?? undefined }
 }
 
+const isMedia = (value: unknown): value is Media =>
+  typeof value === 'object' && value !== null && 'url' in (value as Media)
+
 export default async function ClubPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const club = await getClubBySlug(slug)
@@ -37,15 +44,34 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
     getPeople(club.id),
   ])
 
-  const photos = albums
+  /**
+   * The club's own photo picks come first, then anything from its albums. Deduped by id
+   * because a photo chosen here is very often also in an album, and the same face
+   * appearing twice in an eight-tile strip looks like a mistake.
+   */
+  const chosen = (Array.isArray(club.gallery) ? club.gallery : []).filter(isMedia)
+  const fromAlbums = albums
     .flatMap((album) => (Array.isArray(album.photos) ? album.photos : []))
-    .filter((p): p is Media => typeof p === 'object' && p !== null)
+    .filter(isMedia)
+  const seen = new Set<number | string>()
+  const photos = [...chosen, ...fromAlbums]
+    .filter((photo) => {
+      if (seen.has(photo.id)) return false
+      seen.add(photo.id)
+      return true
+    })
     .slice(0, 8)
 
-  const socials = club.socials
-  const telegramHref = socials?.telegram
-    ? `https://${socials.telegram.replace(/^https?:\/\//, '')}`
-    : null
+  const labels = club.labels
+  const cta = club.joinCta
+  // Falls back to counts we can always compute, rather than to a claim about the club
+  // that may not be true of it.
+  const quickFacts = club.quickFacts?.length
+    ? club.quickFacts
+    : [
+        { id: 'upcoming', label: 'Upcoming events', value: String(events.length) },
+        { id: 'committee', label: 'Committee', value: String(people.length) },
+      ]
 
   return (
     // One attribute themes the whole page; nothing below reads a club colour directly.
@@ -57,53 +83,37 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
           <div className="absolute inset-0 bg-gradient-to-t from-ink-deep via-ink-deep/55 to-ink-deep/20" />
         </div>
         <Container className="relative py-14">
-          <h1 className="text-hero-sm text-paper md:text-hero">{club.name}</h1>
-          {club.tagline ? (
-            <p className="mt-3 max-w-xl text-lead text-paper/85">{club.tagline}</p>
-          ) : null}
+          <div className="hero-enter">
+            {club.logo ? (
+              <div className="relative mb-5 size-16 overflow-hidden md:size-20">
+                <MediaImage fill media={club.logo} placeholderLabel="" sizes="80px" />
+              </div>
+            ) : null}
+            <h1 className="text-hero-sm text-paper md:text-hero">{club.name}</h1>
+            {club.tagline ? (
+              <p className="mt-3 max-w-xl text-lead text-paper/85">{club.tagline}</p>
+            ) : null}
+          </div>
         </Container>
       </section>
 
       {/* Quick facts */}
       <section className="border-b border-line bg-off">
         <Container className="grid grid-cols-2 gap-6 py-8 md:grid-cols-4">
-          <div>
-            <p className="font-display text-eyebrow tracking-eyebrow text-muted uppercase">
-              Upcoming
-            </p>
-            <p className="text-card text-ink">{events.length}</p>
-          </div>
-          <div>
-            <p className="font-display text-eyebrow tracking-eyebrow text-muted uppercase">
-              Committee
-            </p>
-            <p className="text-card text-ink">{people.length}</p>
-          </div>
-          <div>
-            <p className="font-display text-eyebrow tracking-eyebrow text-muted uppercase">
-              Experience needed
-            </p>
-            <p className="text-card text-ink">None</p>
-          </div>
-          {socials?.email ? (
-            <div>
+          {quickFacts.map((fact) => (
+            <div key={fact.id ?? fact.label}>
               <p className="font-display text-eyebrow tracking-eyebrow text-muted uppercase">
-                Email
+                {fact.label}
               </p>
-              <a
-                className="text-meta break-words text-orange-text underline underline-offset-2"
-                href={`mailto:${socials.email}`}
-              >
-                {socials.email}
-              </a>
+              <p className="text-card text-ink">{fact.value}</p>
             </div>
-          ) : null}
+          ))}
         </Container>
       </section>
 
       {/* Who we are */}
       {club.whoWeAre ? (
-        <Section eyebrow="Who we are" title={`This is ${club.name}`}>
+        <Section eyebrow="Who we are" title={labels?.whoWeAre ?? `This is ${club.name}`}>
           <div className="max-w-3xl">
             <RichText data={club.whoWeAre} />
           </div>
@@ -112,10 +122,17 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
 
       {/* Key events — the club's signature happenings, distinct from dated events */}
       {club.keyEvents?.length ? (
-        <Section className="bg-accent-tint" eyebrow="What we do" title="Key events">
+        <Section
+          className="bg-accent-tint"
+          eyebrow="What we do"
+          title={labels?.keyEvents ?? 'Key events'}
+        >
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {club.keyEvents.map((item) => (
-              <div className="bg-paper p-6" key={item.id ?? item.title}>
+              <div
+                className="border border-line/70 bg-paper p-6 transition-transform duration-200 hover:-translate-y-0.5"
+                key={item.id ?? item.title}
+              >
                 <h3 className="text-card">{item.title}</h3>
                 <p className="mt-3 text-meta text-copy">{item.description}</p>
               </div>
@@ -124,9 +141,9 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
         </Section>
       ) : null}
 
-      {/* Sessions and joining, side by side — the two things a new student asks */}
-      <Section eyebrow="New to this?" title="Start here">
-        <div className="grid gap-8 md:grid-cols-2">
+      {/* Sessions and joining — the two things a new student asks */}
+      <Section eyebrow="New to this?" title={labels?.startHere ?? 'Start here'}>
+        <div className="grid gap-8 md:grid-cols-2 md:gap-12">
           <div>
             <h3 className="text-card">Club sessions</h3>
             <div className="mt-3">
@@ -147,11 +164,29 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
               )}
             </div>
           </div>
+          {/* Both of these were fields an editor could fill in that appeared nowhere
+              on the site until now. */}
+          {club.beginnerNotes ? (
+            <div>
+              <h3 className="text-card">No experience?</h3>
+              <div className="mt-3">
+                <RichText data={club.beginnerNotes} />
+              </div>
+            </div>
+          ) : null}
+          {club.gearAndCost ? (
+            <div>
+              <h3 className="text-card">Gear and cost</h3>
+              <div className="mt-3">
+                <RichText data={club.gearAndCost} />
+              </div>
+            </div>
+          ) : null}
         </div>
       </Section>
 
       {/* Upcoming events */}
-      <Section className="bg-off" eyebrow="What's on" title="Upcoming events">
+      <Section className="bg-off" eyebrow="What's on" title={labels?.events ?? 'Upcoming events'}>
         {events.length > 0 ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (
@@ -165,11 +200,12 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
 
       {/* Past trips */}
       {photos.length > 0 ? (
-        <Section eyebrow="Past trips" title="Where we have been">
+        <Section eyebrow="Past trips" title={labels?.gallery ?? 'Where we have been'}>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {photos.map((photo) => (
-              <div className="relative aspect-square" key={photo.id}>
+              <div className="relative aspect-square overflow-hidden" key={photo.id}>
                 <MediaImage
+                  className="transition-transform duration-500 hover:scale-[1.04]"
                   fill
                   media={photo}
                   placeholderLabel=""
@@ -183,21 +219,14 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
 
       {/* Committee */}
       {people.length > 0 ? (
-        <Section className="bg-off" eyebrow="Who runs it" title="The committee">
+        <Section
+          className="bg-off"
+          eyebrow="Who runs it"
+          title={labels?.committee ?? 'The committee'}
+        >
           <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
             {people.map((person) => (
-              <div key={person.id}>
-                <div className="relative aspect-[3/4] overflow-hidden bg-accent-tint">
-                  <MediaImage
-                    fill
-                    media={person.photo}
-                    placeholderLabel={person.name}
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                  />
-                </div>
-                <p className="mt-3 font-display text-lead uppercase">{person.name}</p>
-                <p className="text-meta text-muted">{person.role}</p>
-              </div>
+              <PersonCard key={person.id} person={person} />
             ))}
           </div>
         </Section>
@@ -221,9 +250,12 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
         <Section className="bg-off" eyebrow="Before you ask" title="FAQ">
           <div className="max-w-3xl divide-y divide-line border-y border-line">
             {club.faqs.map((item) => (
-              <details className="group py-4" key={item.id ?? item.question}>
-                <summary className="flex min-h-11 cursor-pointer items-center font-display text-lead uppercase">
+              <details className="faq group py-4" key={item.id ?? item.question}>
+                <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-4 font-display text-lead uppercase">
                   {item.question}
+                  <span aria-hidden="true" className="chevron shrink-0 text-accent">
+                    +
+                  </span>
                 </summary>
                 <p className="mt-2 text-body text-copy">{item.answer}</p>
               </details>
@@ -232,52 +264,34 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
         </Section>
       ) : null}
 
+      {/* Anything the fixed sections above do not cover, added by the club itself. */}
+      <Blocks blocks={club.sections} />
+
       {/* Join CTA */}
       <section className="bg-ink-deep">
         <Container className="py-16">
-          <h2 className="text-section text-paper">Come along</h2>
-          <p className="mt-3 max-w-xl text-lead text-paper/80">
-            You do not need to be a member to join in, and you do not need any experience. Say hello
-            first and we will tell you exactly what to bring.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              className="inline-flex min-h-11 items-center bg-accent px-6 font-display text-meta tracking-button text-paper uppercase hover:opacity-90"
-              href="/join"
-            >
-              How to join
-            </Link>
-            {telegramHref ? (
-              <a
-                className="inline-flex min-h-11 items-center border border-paper/40 px-6 font-display text-meta tracking-button text-paper uppercase hover:bg-paper/10"
-                href={telegramHref}
-                rel="noopener noreferrer"
-                target="_blank"
+          <Reveal>
+            <h2 className="text-section text-paper">{cta?.heading || 'Come along'}</h2>
+            <p className="mt-3 max-w-xl text-lead text-paper/80">
+              {cta?.body ||
+                'You do not need to be a member to join in, and you do not need any experience. Say hello first and we will tell you exactly what to bring.'}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <SmartLink
+                className="inline-flex min-h-11 items-center bg-accent px-6 font-display text-meta tracking-button text-paper uppercase transition-transform duration-200 hover:-translate-y-0.5"
+                href={cta?.buttonUrl || '/join'}
               >
-                Telegram
-              </a>
-            ) : null}
-            {socials?.instagram ? (
-              <a
-                className="inline-flex min-h-11 items-center border border-paper/40 px-6 font-display text-meta tracking-button text-paper uppercase hover:bg-paper/10"
-                href={`https://instagram.com/${socials.instagram.replace(/^@/, '')}`}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Instagram
-              </a>
-            ) : null}
-            {socials?.website ? (
-              <a
-                className="inline-flex min-h-11 items-center border border-paper/40 px-6 font-display text-meta tracking-button text-paper uppercase hover:bg-paper/10"
-                href={socials.website}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                Website
-              </a>
-            ) : null}
-          </div>
+                {cta?.buttonLabel || 'How to join'}
+              </SmartLink>
+            </div>
+            <SocialRow
+              className="mt-8"
+              extra={club.extraSocials}
+              onDark
+              socials={club.socials}
+              variant="chip"
+            />
+          </Reveal>
         </Container>
       </section>
     </div>

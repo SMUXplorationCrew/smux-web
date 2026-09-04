@@ -15,6 +15,8 @@ export const Users: CollectionConfig = {
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['email', 'role', 'club'],
+    group: 'Settings',
+    description: 'Who can sign in, and what each of them may change.',
   },
   auth: true,
   access: {

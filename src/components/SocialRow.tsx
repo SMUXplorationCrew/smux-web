@@ -1,81 +1,132 @@
-import type { SiteSetting } from '@/payload-types'
-
-type Socials = NonNullable<SiteSetting['socials']>
+import type React from 'react'
+import { BRAND_COLOR, SocialIcon } from '@/components/SocialIcon'
+import { type ExtraLink, type SocialBag, type SocialLink, toSocialLinks } from '@/lib/socials'
 
 /**
- * The "and more from our socials!" row the wireframe draws, with the five platforms it
- * names. Inline SVG rather than an icon package: five glyphs do not justify a dependency,
- * and these inherit currentColor so they theme with the page for free.
+ * Every social link on the site renders through here, in one of four shapes.
+ *
+ * The alternative — each page building its own row — is what produced three different
+ * Telegram URLs and two different orderings before this existed.
  */
-const ICONS: Record<string, React.ReactNode> = {
-  telegram: (
-    <path d="M21.9 4.3 18.7 20c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.3-.1-.5-.6-.2L6.3 13.1 1.5 11.6c-1-.3-1-1 .2-1.5l19-7.3c.9-.3 1.6.2 1.2 1.5z" />
-  ),
-  instagram: (
-    <path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.2 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c0 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2 0-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c0-1.2.2-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 3.2A6.6 6.6 0 1 0 18.6 12 6.6 6.6 0 0 0 12 5.4zm0 10.9A4.3 4.3 0 1 1 16.3 12 4.3 4.3 0 0 1 12 16.3zm6.9-11.1a1.5 1.5 0 1 1-1.5-1.6 1.5 1.5 0 0 1 1.5 1.6z" />
-  ),
-  linkedin: (
-    <path d="M6.9 21.5H3.3V9.2h3.6zM5.1 7.6a2.1 2.1 0 1 1 2.1-2.1 2.1 2.1 0 0 1-2.1 2.1zM21.5 21.5h-3.6v-6c0-1.4 0-3.2-2-3.2s-2.3 1.5-2.3 3.1v6.1H10V9.2h3.4v1.7a3.8 3.8 0 0 1 3.4-1.9c3.6 0 4.3 2.4 4.3 5.5z" />
-  ),
-  tiktok: (
-    <path d="M16.6 2h-3.1v13.4a2.7 2.7 0 1 1-2.3-2.7v-3.2a5.9 5.9 0 1 0 5.4 5.9V8.9a7 7 0 0 0 4.1 1.3V7a4 4 0 0 1-4.1-4z" />
-  ),
-  email: (
-    <path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm9 8.2 8-5.3V6.6l-8 5.3-8-5.3v1.3z" />
-  ),
+export type SocialVariant = 'chip' | 'tile' | 'inline' | 'icon'
+
+interface SocialRowProps {
+  socials?: SocialBag
+  /** Editor-added rows for platforms the fixed list does not cover. */
+  extra?: ExtraLink[] | null
+  variant?: SocialVariant
+  className?: string
+  /** Inverts the resting colours for dark grounds like the footer. */
+  onDark?: boolean
 }
 
-const href = (kind: string, value: string): string => {
-  const v = value.trim()
-  if (kind === 'email') return `mailto:${v}`
-  if (/^https?:\/\//.test(v)) return v
-  if (kind === 'telegram') return `https://${v.replace(/^https?:\/\//, '')}`
-  if (kind === 'instagram') return `https://instagram.com/${v.replace(/^@/, '')}`
-  if (kind === 'tiktok') return `https://tiktok.com/@${v.replace(/^@/, '')}`
-  return `https://${v}`
-}
+/**
+ * The brand colour is applied through a custom property so it can drive both the text
+ * and the border on hover without repeating the literal in four utilities. Platforms
+ * with no brand colour of their own fall back to the club accent, which keeps a club
+ * page's own palette on its own links.
+ */
+const brandStyle = (link: SocialLink): React.CSSProperties =>
+  ({ '--brand': BRAND_COLOR[link.kind] ?? 'var(--color-accent)' }) as React.CSSProperties
 
-const LABELS: Record<string, string> = {
-  telegram: 'Telegram',
-  instagram: 'Instagram',
-  linkedin: 'LinkedIn',
-  tiktok: 'TikTok',
-  email: 'Email',
-}
+const linkProps = (link: SocialLink) => ({
+  href: link.href,
+  rel: link.kind === 'email' ? undefined : 'noopener noreferrer',
+  target: link.kind === 'email' ? undefined : '_blank',
+  style: brandStyle(link),
+})
 
 export const SocialRow = ({
   socials,
+  extra,
+  variant = 'chip',
   className = '',
-}: {
-  socials?: Socials | null
-  className?: string
-}) => {
-  if (!socials) return null
+  onDark = false,
+}: SocialRowProps) => {
+  const links = toSocialLinks(socials, extra)
+  if (links.length === 0) return null
 
-  // Ordered as the wireframe draws them, and only what has actually been filled in.
-  const bag = socials as Record<string, string | null | undefined>
-  const ORDER = ['telegram', 'instagram', 'linkedin', 'tiktok', 'email']
-  const entries: { kind: string; value: string }[] = ORDER.flatMap((kind) => {
-    const value = bag[kind]
-    return value ? [{ kind, value }] : []
-  })
+  if (variant === 'tile') {
+    return (
+      <ul className={`grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3 ${className}`}>
+        {links.map((link) => (
+          <li key={`${link.kind}-${link.href}`}>
+            <a
+              className="group flex min-h-11 flex-col gap-3 border border-line bg-paper p-5 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-[var(--brand)]"
+              {...linkProps(link)}
+            >
+              <SocialIcon
+                className="size-6 text-muted transition-colors duration-200 group-hover:text-[var(--brand)]"
+                kind={link.kind}
+              />
+              <span className="font-display text-eyebrow tracking-eyebrow text-ink uppercase">
+                {link.label}
+              </span>
+              <span className="text-meta break-words text-muted">{link.handle}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
 
-  if (entries.length === 0) return null
+  if (variant === 'inline') {
+    return (
+      <ul className={`flex flex-col ${className}`}>
+        {links.map((link) => (
+          <li key={`${link.kind}-${link.href}`}>
+            <a
+              className={`group flex min-h-11 items-center gap-2.5 text-meta transition-colors duration-200 hover:text-[var(--brand)] ${
+                onDark ? 'text-paper/85' : 'text-copy'
+              }`}
+              {...linkProps(link)}
+            >
+              <SocialIcon
+                className={`size-4 shrink-0 transition-colors duration-200 group-hover:text-[var(--brand)] ${
+                  onDark ? 'text-paper/50' : 'text-muted'
+                }`}
+                kind={link.kind}
+              />
+              <span className="break-all">{link.handle}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  if (variant === 'icon') {
+    return (
+      <ul className={`flex flex-wrap items-center gap-2 ${className}`}>
+        {links.map((link) => (
+          <li key={`${link.kind}-${link.href}`}>
+            <a
+              className={`flex size-11 items-center justify-center border transition-[color,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-[var(--brand)] hover:text-[var(--brand)] ${
+                onDark ? 'border-paper/25 text-paper/75' : 'border-line text-muted'
+              }`}
+              {...linkProps(link)}
+            >
+              <SocialIcon className="size-5" kind={link.kind} />
+              <span className="sr-only">{link.label}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
 
   return (
     <ul className={`flex flex-wrap items-center gap-3 ${className}`}>
-      {entries.map(({ kind, value }) => (
-        <li key={kind}>
+      {links.map((link) => (
+        <li key={`${link.kind}-${link.href}`}>
           <a
-            className="flex min-h-11 items-center gap-2 border border-line px-4 font-display text-eyebrow tracking-eyebrow text-ink uppercase transition-colors hover:border-accent hover:text-accent"
-            href={href(kind, value)}
-            rel="noopener noreferrer"
-            target={kind === 'email' ? undefined : '_blank'}
+            className={`group flex min-h-11 items-center gap-2 border px-4 font-display text-eyebrow tracking-eyebrow uppercase transition-[color,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-[var(--brand)] hover:text-[var(--brand)] ${
+              onDark ? 'border-paper/25 text-paper/85' : 'border-line text-ink'
+            }`}
+            {...linkProps(link)}
           >
-            <svg aria-hidden="true" className="size-4 fill-current" viewBox="0 0 24 24">
-              {ICONS[kind]}
-            </svg>
-            {LABELS[kind]}
+            <SocialIcon className="size-4" kind={link.kind} />
+            {link.label}
           </a>
         </li>
       ))}

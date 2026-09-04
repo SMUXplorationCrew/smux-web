@@ -13,6 +13,9 @@ export const Media: CollectionConfig = {
   admin: {
     useAsTitle: 'alt',
     defaultColumns: ['alt', 'club', 'updatedAt'],
+    group: 'Files',
+    description:
+      'Every photo on the site. Alt text is required — it is what a screen reader says, and what shows if an image fails to load.',
   },
   access: {
     read: anyone,
