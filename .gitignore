@@ -39,3 +39,8 @@ next-env.d.ts
 
 # --- Vercel ---
 .vercel
+
+# --- planning notes ---
+# Kept locally on purpose: this is a working document, not a deliverable, and it
+# should not land on main with the rest of the branch.
+docs/ROADMAP.md
