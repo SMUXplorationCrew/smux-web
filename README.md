@@ -150,6 +150,47 @@ menu entry — passes through `safeUrl` in [src/lib/url.ts](src/lib/url.ts) befo
 becomes an `href`, which accepts paths, `https:`, `mailto:` and `tel:` and rejects
 everything else.
 
+### Text formatting
+
+The editor offers more than bold and italic, but only from a fixed menu — there is no
+free-form style box, and nothing an editor can pick will break a layout.
+
+| | |
+|---|---|
+| **Structure** | Headings h2–h4, lists, checklists, quotes, horizontal rules, alignment, indent |
+| **Inline** | Bold, italic, underline, strikethrough, inline code, superscript, subscript, links |
+| **Style menu** | Large · Small · Condensed · Monospace · Brand orange · Muted · Strong · Orange highlight · Grey highlight |
+| **Blocks** | Tables, and images placed inline |
+
+h1 is deliberately absent: the page title is the h1, and a second one breaks the
+document outline invisibly in the editor and permanently on the site.
+
+**The style menu is defined once**, in [src/lib/richTextStates.ts](src/lib/richTextStates.ts).
+The admin panel applies those declarations live while editing and the site's converter
+applies the same ones when rendering, so there is no second copy to drift — which is
+the usual way "it looked right in the CMS" happens. Only the chosen key is stored on
+the text node, so a value corrected in that file is corrected in every document already
+written.
+
+Two rules make it safe to hand over, and both are enforced by
+[tests/unit/richTextStates.unit.spec.ts](tests/unit/richTextStates.unit.spec.ts):
+
+- **No fixed pixel sizes.** Sizes are `clamp()` or `rem`, so editor-chosen type still
+  scales between a phone and a desktop.
+- **No layout properties.** Nothing in the menu may set `width`, `position`, `float`,
+  `margin` or `display`, so a run of styled text cannot escape its column.
+
+Colours are measured against every ground they can land on — paper, off-white, all six
+club tints and both highlights — and clear 4.5:1 on the worst of them.
+
+**Tables scroll inside their own box.** A five-column gear list cannot reflow to 390px,
+so the choice is between a table that scrolls and a page that does; the container is
+keyboard-focusable so it is still reachable without a mouse.
+
+The admin panel loads the site's two typefaces and matches its type scale
+([custom.scss](src/app/(payload)/custom.scss)), so what an editor sees while writing is
+what the page renders.
+
 ### Social links
 
 Editors are not expected to type URLs consistently. `t.me/smuxdiving`, `@smuxdiving`,

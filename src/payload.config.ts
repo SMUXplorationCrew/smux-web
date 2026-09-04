@@ -5,10 +5,12 @@ import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import {
   AlignFeature,
   ChecklistFeature,
+  EXPERIMENTAL_TableFeature,
   FixedToolbarFeature,
   HeadingFeature,
   HorizontalRuleFeature,
   lexicalEditor,
+  TextStateFeature,
 } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { buildConfig } from 'payload'
@@ -22,6 +24,7 @@ import { People } from './collections/People'
 import { Resources } from './collections/Resources'
 import { Users } from './collections/Users'
 import { SiteSettings } from './globals/SiteSettings'
+import { RICH_TEXT_STATES } from './lib/richTextStates'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -159,11 +162,12 @@ export default buildConfig({
      * safe form.
      */
     features: ({ defaultFeatures }) => [
-      // Headings are re-declared to stop at h2/h3. The page title is the h1, and an
-      // editor-inserted second h1 breaks the document outline on every page it reaches
-      // — invisible in the editor, permanent on the site.
+      // Headings stop at h2-h4. The page title is the h1, and an editor-inserted
+      // second h1 breaks the document outline on every page it reaches — invisible in
+      // the editor, permanent on the site. h4 exists so a long "gear and cost" page
+      // can have a third level without anyone reaching for bold-as-a-heading.
       ...defaultFeatures.filter((f) => f.key !== 'heading'),
-      HeadingFeature({ enabledHeadingSizes: ['h2', 'h3'] }),
+      HeadingFeature({ enabledHeadingSizes: ['h2', 'h3', 'h4'] }),
 
       // The important one for non-developers: the default toolbar only appears once
       // text is selected, so someone who has not used this kind of editor sees a plain
@@ -174,6 +178,25 @@ export default buildConfig({
       HorizontalRuleFeature(),
       // "What to bring" is the most common list a club writes.
       ChecklistFeature(),
+
+      /**
+       * Size, typeface, colour and highlight — as a fixed menu.
+       *
+       * Only the chosen key is stored on the text node; the CSS lives in
+       * src/lib/richTextStates.ts, which the site's renderer reads too. That is what
+       * keeps this from becoming the usual CMS problem where an editor can set 90px
+       * type that overflows a phone, or a colour that fails contrast on the page it
+       * lands on. Every value there is responsive and measured.
+       */
+      TextStateFeature({ state: RICH_TEXT_STATES }),
+
+      /**
+       * Tables, for gear lists and costs — the thing clubs were otherwise faking with
+       * indented lists. Marked experimental upstream, so it is worth knowing this may
+       * need attention on a Payload upgrade; the content survives regardless, since it
+       * is stored as ordinary lexical nodes.
+       */
+      EXPERIMENTAL_TableFeature(),
     ],
   }),
   secret: process.env.PAYLOAD_SECRET || '',

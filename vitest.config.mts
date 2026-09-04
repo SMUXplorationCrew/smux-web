@@ -7,6 +7,9 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['tests/int/**/*.int.spec.ts', 'tests/unit/**/*.unit.spec.ts'],
+    // .tsx included so component rendering can be tested. The rich-text converters
+    // are the reason: whether editor formatting survives to the page is exactly the
+    // kind of thing that silently regresses.
+    include: ['tests/int/**/*.int.spec.{ts,tsx}', 'tests/unit/**/*.unit.spec.{ts,tsx}'],
   },
 })

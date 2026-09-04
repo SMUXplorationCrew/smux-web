@@ -13,6 +13,8 @@ export const SmartLink = ({
   href,
   children,
   className = '',
+  target,
+  rel,
   ...rest
 }: {
   href: string | null | undefined
@@ -24,14 +26,26 @@ export const SmartLink = ({
 
   if (isInternalUrl(url)) {
     return (
-      <Link className={className} href={url} {...rest}>
+      <Link className={className} href={url} rel={rel} target={target} {...rest}>
         {children}
       </Link>
     )
   }
 
+  /**
+   * `target` and `rel` are pulled out of the props rather than left in the spread.
+   * Spread last, a caller passing `target={undefined}` — which is what a ternary with
+   * no else branch produces — would overwrite the default below with nothing, silently
+   * turning off the new tab. Pass "_self" to mean the same tab on purpose.
+   */
   return (
-    <a className={className} href={url} rel="noopener noreferrer" target="_blank" {...rest}>
+    <a
+      className={className}
+      href={url}
+      rel={rel ?? 'noopener noreferrer'}
+      target={target ?? '_blank'}
+      {...rest}
+    >
       {children}
     </a>
   )
