@@ -20,6 +20,45 @@ Not done, and still blocking a real rollout: the seven accounts exist **only on 
 
 **The shared `dev` branch (`br-frosty-river-b3u4rrww`) still carries the contaminated Trekking tagline.** It was not repaired: it is a shared environment and nobody asked for it to be written to. The same one-line fix applies, or re-seed it. `production` (`br-long-block-b3fdztu8`) has 0 club rows and was never affected.
 
+## Session of 14 September 2026 (continued)
+
+Everything below is committed on `feat/smux-elite-upgrade`.
+
+- **Lint is clean.** 28 warnings to zero, mostly by narrowing rather than suppressing. One
+  was hiding a defect: the invitation row lock dereferenced
+  `payload.db.sessions?.[transactionID].db` behind a cast, which would have thrown from
+  inside a half-open transaction. The four remaining suppressions are deliberate and say
+  why. Generated migrations joined the Biome ignore list.
+- **The documentation set is written** — nine guides under `docs/`, plus `CONTRIBUTING.md`,
+  `SECURITY.md`, issue templates and a PR template. All thirteen were missing. The README
+  went from 646 lines to 181, restructured as the audit proposed, with the drifted figures
+  ("294 pages", "128 tests", "0 request-time queries") replaced by real dated ones.
+- **Slug renames no longer break inbound links.** A `beforeChange` hook records the retired
+  slug, the route answers the old address with a permanent redirect, and
+  `generateStaticParams` includes old slugs so the redirect stays pre-rendered. Additive
+  migration, 7 new tests including the rename-back case that would otherwise loop.
+- **Operations collections now go through `enhanceCollection`.** They were concatenated
+  after the `.map()`, so anything cross-cutting silently skipped stories and campaigns.
+- **The homepage hero is CMS-driven.** `heroHeading`, `motto` and `heroButtons` existed
+  with descriptions promising they controlled the hero, and were ignored in favour of
+  hardcoded copy. The headline was also copy the audit asked to keep as a proposal until
+  the committee chose it.
+- **`/benefits` lost its `revalidate = 300`.** It was the only public page on a timer and
+  is already in the publication path list.
+- **The e2e suite ran for the first time: 11/11 pass**, covering no horizontal overflow at
+  390/768/1280px and 44px tap targets. It found the hero defect above. The installed
+  `chromium-1208` has no Frameworks directory and aborts on launch — point
+  `PLAYWRIGHT_CHROMIUM_PATH` at a complete build.
+
+Verification: tsc clean · Biome 0/0 · 105 unit · 55 integration · 11 e2e · build 448
+outputs. Still Node 26.7.0, not the declared Node 22.
+
+Still open, and honest about it: items 3 to 8 below are only partly addressed. Live
+account provisioning, a verified deployed preview, a full accessibility audit, a
+cross-device visual review, real committee content, analytics, monitoring and a backup
+rehearsal are all outstanding — several of them need decisions or access that code cannot
+supply. `docs/IMPLEMENTATION.md` carries the per-package state.
+
 ## Branch and environment
 
 - Branch: `feat/smux-elite-upgrade`, created from freshly fetched `origin/main` at `5053fb5`.

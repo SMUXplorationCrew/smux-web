@@ -115,7 +115,6 @@ this. See [RUNBOOK.md](RUNBOOK.md).
 Honest gaps, so nobody assumes otherwise:
 
 - No deployed preview of the upgrade branch has been verified.
-- Slug redirects are not implemented; renaming a published slug abandons inbound links.
 - Analytics are not connected.
 - Backup/restore has not been rehearsed.
 - Uptime monitoring and failed-publish alerting are not configured.

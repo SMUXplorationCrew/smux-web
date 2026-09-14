@@ -139,11 +139,16 @@ More: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 ## Status
 
 Verified on 2026-09-14, on the upgrade branch: typecheck clean · Biome 0 errors, 0
-warnings · **105 unit tests** · **48 integration tests** · production build passes.
+warnings · **105 unit** · **55 integration** · **11 end-to-end** · production build
+passes with 448 outputs.
 
-End-to-end tests, accessibility auditing and a cross-device visual review have **not**
-been run. Tap-target and contrast rules are encoded as tokens and checked in places, not
-validated across every rendered state.
+The e2e suite covers no horizontal overflow at 390/768/1280px and 44px tap targets on
+the mobile menu. A full accessibility audit and a cross-device visual review have **not**
+been done, and contrast is encoded as tokens rather than validated across every rendered
+state.
+
+> Running e2e needs a complete Chromium. The installed `chromium-1208` has no Frameworks
+> directory and aborts on launch; point `PLAYWRIGHT_CHROMIUM_PATH` at a working build.
 
 ## Reporting a problem
 
