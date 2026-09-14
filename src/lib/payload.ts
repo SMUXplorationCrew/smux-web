@@ -1,180 +1,99 @@
 import config from '@payload-config'
-import { getPayload, type Where } from 'payload'
+import { type CollectionSlug, type DataFromCollectionSlug, getPayload, type Where } from 'payload'
 import { cache } from 'react'
-import type { Album, Club, Event, Page, Person, SiteSetting } from '@/payload-types'
+import { currentAcademicYear } from '@/lib/event-time'
 
-/**
- * Read helpers for the pre-rendered site. Everything here runs at build time via
- * `generateStaticParams` and page bodies — nothing fetches per request.
- *
- * `cache` dedupes within a single render pass, so a club page asking for its own club
- * and its events does not hit the database twice for the same rows.
- */
-
+/** Request-level memoization only. Public callers always execute as anonymous. Errors propagate,
+ * so failed regeneration cannot replace a good page with a successful empty response. */
 export const getPayloadClient = cache(async () => getPayload({ config }))
-
-/**
- * Queries degrade to an empty result instead of throwing.
- *
- * The site is being built before its content exists, so a missing table or an
- * unreachable database should still produce a page with an honest empty state rather
- * than failing the build. Session 6 adds the build-time validation that turns genuinely
- * missing content back into a hard failure; until then this is deliberately forgiving,
- * and every fallback is logged rather than swallowed silently.
- */
-const safely = async <T>(label: string, run: () => Promise<T>, fallback: T): Promise<T> => {
-  try {
-    return await run()
-  } catch (error) {
-    console.warn(`[payload] ${label} failed, falling back to empty:`, (error as Error)?.message)
-    return fallback
+const published = { _status: { equals: 'published' } }
+export const publicDocuments = async <T extends CollectionSlug>(
+  collection: T,
+  where: Where = {},
+  depth = 1,
+  sort = '-updatedAt',
+): Promise<DataFromCollectionSlug<T>[]> => {
+  const payload = await getPayloadClient()
+  const result: DataFromCollectionSlug<T>[] = []
+  for (let page = 1; ; page++) {
+    const data = await payload.find({
+      collection,
+      where,
+      depth,
+      sort,
+      limit: 100,
+      page,
+      overrideAccess: false,
+      user: undefined,
+      draft: false,
+    })
+    result.push(...data.docs)
+    if (!data.hasNextPage) break
   }
+  return result
 }
-
-export const getClubs = cache(
-  async (): Promise<Club[]> =>
-    safely('getClubs', async () => {
-      const payload = await getPayloadClient()
-      const { docs } = await payload.find({
-        collection: 'clubs',
-        limit: 20,
-        depth: 1,
-        sort: 'name',
-      })
-      return docs
-    }, []),
-)
-
+export const getClubs = cache(() => publicDocuments('clubs', published, 1, 'name'))
 export const getClubBySlug = cache(
-  async (slug: string): Promise<Club | null> =>
-    safely(
-      `getClubBySlug(${slug})`,
-      async () => {
-        const payload = await getPayloadClient()
-        const { docs } = await payload.find({
-          collection: 'clubs',
-          where: { slug: { equals: slug } },
-          limit: 1,
-          depth: 2,
-        })
-        return docs[0] ?? null
-      },
-      null,
-    ),
+  async (slug: string) =>
+    (await publicDocuments('clubs', { and: [published, { slug: { equals: slug } }] }, 2))[0] ??
+    null,
 )
-
-interface EventQuery {
-  clubId?: number | string
-  /** Only events that have not finished yet. */
-  upcoming?: boolean
-  limit?: number
-}
-
 export const getEvents = cache(
-  async (query: EventQuery = {}): Promise<Event[]> =>
-    safely('getEvents', async () => {
-      const payload = await getPayloadClient()
-      const where: Where = {}
-      if (query.clubId) where.club = { equals: query.clubId }
-      if (query.upcoming) {
-        /**
-         * "Upcoming" means not finished, not "not started". Filtering on startsAt alone
-         * drops a multi-day trip the moment it begins, hiding it from the home, events,
-         * club and committee pages while it is actually running. Events without an end
-         * time fall back to their start.
-         */
-        const now = new Date().toISOString()
-        where.or = [
-          { endsAt: { greater_than_equal: now } },
-          { and: [{ endsAt: { exists: false } }, { startsAt: { greater_than_equal: now } }] },
-        ]
-      }
-
-      const { docs } = await payload.find({
-        collection: 'events',
-        where,
-        limit: query.limit ?? 100,
-        depth: 2,
-        sort: 'startsAt',
-      })
-      return docs
-    }, []),
+  async (query: { clubId?: number | string; upcoming?: boolean; limit?: number } = {}) => {
+    const where: Where = {
+      and: [
+        published,
+        { archived: { not_equals: true } },
+        ...(query.clubId ? [{ club: { equals: query.clubId } }] : []),
+      ],
+    }
+    // Keep the full event horizon. Browsers derive current lists from these static records.
+    return publicDocuments('events', where, 1, 'startsAt')
+  },
 )
-
 export const getEventBySlug = cache(
-  async (slug: string): Promise<Event | null> =>
-    safely(
-      `getEventBySlug(${slug})`,
-      async () => {
-        const payload = await getPayloadClient()
-        const { docs } = await payload.find({
-          collection: 'events',
-          where: { slug: { equals: slug } },
-          limit: 1,
-          depth: 2,
-        })
-        return docs[0] ?? null
-      },
-      null,
-    ),
+  async (slug: string) =>
+    (await publicDocuments('events', { and: [published, { slug: { equals: slug } }] }, 2))[0] ??
+    null,
 )
-
-export const getAlbums = cache(
-  async (clubId?: number | string): Promise<Album[]> =>
-    safely('getAlbums', async () => {
-      const payload = await getPayloadClient()
-      const { docs } = await payload.find({
-        collection: 'albums',
-        where: clubId ? { club: { equals: clubId } } : {},
-        limit: 50,
-        depth: 2,
-        sort: '-date',
-      })
-      return docs
-    }, []),
+export const getAlbums = cache((clubId?: number | string) =>
+  publicDocuments('albums', clubId ? { club: { equals: clubId } } : {}, 2, '-date'),
 )
-
-export const getPeople = cache(
-  async (clubId?: number | string): Promise<Person[]> =>
-    safely('getPeople', async () => {
-      const payload = await getPayloadClient()
-      const { docs } = await payload.find({
-        collection: 'people',
-        where: clubId ? { club: { equals: clubId } } : {},
-        limit: 100,
-        depth: 2,
-        sort: 'name',
-      })
-      return docs
-    }, []),
+export const getAlbum = cache(
+  async (id: number) => (await publicDocuments('albums', { id: { equals: id } }, 2))[0] ?? null,
 )
-
+export const getSiteSettings = cache(async () => {
+  const payload = await getPayloadClient()
+  return payload.findGlobal({
+    slug: 'siteSettings',
+    depth: 2,
+    overrideAccess: false,
+    user: undefined,
+  })
+})
+export const getPeople = cache(async (clubId?: number | string, ay?: string | null) => {
+  const current =
+    ay === undefined ? (await getSiteSettings()).currentAcademicYear || currentAcademicYear() : ay
+  const filters: Where[] = [{ archived: { not_equals: true } }]
+  if (clubId) filters.push({ club: { equals: clubId } })
+  if (current) filters.push({ ay: { equals: current } })
+  return publicDocuments('people', { and: filters }, 1, 'displayOrder')
+})
 export const getPageBySlug = cache(
-  async (slug: string): Promise<Page | null> =>
-    safely(
-      `getPageBySlug(${slug})`,
-      async () => {
-        const payload = await getPayloadClient()
-        const { docs } = await payload.find({
-          collection: 'pages',
-          where: { slug: { equals: slug } },
-          limit: 1,
-          depth: 2,
-        })
-        return docs[0] ?? null
-      },
-      null,
-    ),
+  async (slug: string) =>
+    (await publicDocuments('pages', { and: [published, { slug: { equals: slug } }] }, 2))[0] ??
+    null,
 )
-
-export const getSiteSettings = cache(
-  async (): Promise<SiteSetting | null> =>
-    safely(
-      'getSiteSettings',
-      async () => {
-        const payload = await getPayloadClient()
-        return await payload.findGlobal({ slug: 'siteSettings', depth: 2 })
-      },
-      null,
-    ),
+export const getStories = cache(() => publicDocuments('stories', published, 1))
+export const getStory = cache(
+  async (slug: string) =>
+    (await publicDocuments('stories', { and: [published, { slug: { equals: slug } }] }, 2))[0] ??
+    null,
 )
+export const getCampaigns = cache(() => publicDocuments('campaigns', published, 1))
+export const getCampaign = cache(
+  async (slug: string) =>
+    (await publicDocuments('campaigns', { and: [published, { slug: { equals: slug } }] }, 2))[0] ??
+    null,
+)
+export const getBenefits = cache(() => publicDocuments('benefits', {}, 1))

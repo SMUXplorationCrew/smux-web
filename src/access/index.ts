@@ -1,4 +1,4 @@
-import type { Access } from 'payload'
+import type { Access, Where } from 'payload'
 
 export type Role = 'mc' | 'editor' | 'member'
 
@@ -9,6 +9,7 @@ export type Role = 'mc' | 'editor' | 'member'
  */
 export interface AccessUser {
   role?: Role | null
+  active?: boolean | null
   club?: number | string | { id: number | string } | null
 }
 
@@ -28,7 +29,7 @@ export const resolveClubId = (club: AccessUser['club']): number | string | null 
 export const anyone: Access = () => true
 
 /** Any signed-in user, regardless of role. Gates the members-only material. */
-export const isAuthenticated: Access = ({ req: { user } }) => Boolean(user)
+export const isAuthenticated: Access = ({ req: { user } }) => Boolean(user && user.active !== false)
 
 /**
  * Club-scoped access for the `clubs` collection itself.
@@ -40,7 +41,7 @@ export const isAuthenticated: Access = ({ req: { user } }) => Boolean(user)
  */
 export const ownClubById: Access = ({ req: { user } }) => {
   const u = user as AccessUser | null
-  if (!u) return false
+  if (!u || u.active === false) return false
   if (u.role === 'mc') return true
   if (u.role !== 'editor') return false
 
@@ -52,8 +53,12 @@ export const ownClubById: Access = ({ req: { user } }) => {
 
 /** Content roles. Members are signed in but may not author anything. */
 export const isEditorOrMc: Access = ({ req: { user } }) => {
-  const role = (user as AccessUser | null)?.role
-  return role === 'mc' || role === 'editor'
+  const u = user as AccessUser | null
+  return Boolean(
+    u &&
+      u.active !== false &&
+      (u.role === 'mc' || (u.role === 'editor' && resolveClubId(u.club) !== null)),
+  )
 }
 
 /**
@@ -64,7 +69,7 @@ export const isEditorOrMc: Access = ({ req: { user } }) => {
  */
 export const selfOrMc: Access = ({ req: { user } }) => {
   const u = user as (AccessUser & { id?: number | string }) | null
-  if (!u) return false
+  if (!u || u.active === false) return false
   if (u.role === 'mc') return true
   return { id: { equals: u.id } }
 }
@@ -78,14 +83,33 @@ export const selfOrMc: Access = ({ req: { user } }) => {
  * anonymous caller every unpublished draft. Expressed as a query, this stays true to
  * "access control is a query, not a boolean" while closing that hole.
  */
-export const publishedOrSignedIn: Access = ({ req: { user } }) => {
-  if (user) return true
+export const publishedOrSignedIn: Access = ({ req: { user } }): boolean | Where => {
+  if (user?.active !== false && user?.role === 'mc') return true
+  if (user?.active !== false && user?.role === 'editor' && resolveClubId(user.club) !== null) {
+    return {
+      or: [{ _status: { equals: 'published' } }, { club: { equals: resolveClubId(user.club) } }],
+    }
+  }
   return { _status: { equals: 'published' } }
 }
 
+export const publishedClubOrOwner: Access = (args): boolean | Where => {
+  const user = args.req.user
+  if (user?.active !== false && user?.role === 'mc') return true
+  if (user?.active !== false && user?.role === 'editor' && resolveClubId(user.club) !== null) {
+    return {
+      or: [{ _status: { equals: 'published' } }, { id: { equals: resolveClubId(user.club) } }],
+    }
+  }
+  return { _status: { equals: 'published' } }
+}
+
+export const publishedOrMc: Access = ({ req: { user } }) =>
+  user?.active !== false && user?.role === 'mc' ? true : { _status: { equals: 'published' } }
+
 /** Destructive operations stay with the main committee. */
 export const mcOnly: Access = ({ req: { user } }) => {
-  return (user as AccessUser | null)?.role === 'mc'
+  return user?.active !== false && (user as AccessUser | null)?.role === 'mc'
 }
 
 /**
@@ -98,7 +122,7 @@ export const mcOnly: Access = ({ req: { user } }) => {
  */
 export const ownClub: Access = ({ req: { user } }) => {
   const u = user as AccessUser | null
-  if (!u) return false
+  if (!u || u.active === false) return false
   if (u.role === 'mc') return true
   if (u.role !== 'editor') return false
 

@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getSignupStatus, type SignupInput, type SignupStatus } from '@/lib/signupState'
+import { useClock } from '@/components/Clock'
+import { getRegistrationStatus, type SignupInput, type SignupStatus } from '@/lib/signupState'
+import { httpUrl } from '@/lib/url'
 
 /**
  * Keeps sign-up state honest on a pre-rendered page.
@@ -17,17 +18,8 @@ import { getSignupStatus, type SignupInput, type SignupStatus } from '@/lib/sign
  * real clock. No JavaScript still yields a sensible, if possibly stale, label.
  */
 export const useLiveSignupStatus = (event: SignupInput, initial: SignupStatus): SignupStatus => {
-  const [status, setStatus] = useState(initial)
-
-  useEffect(() => {
-    const update = () => setStatus(getSignupStatus(event))
-    update()
-    // A page left open across a boundary should still correct itself.
-    const timer = setInterval(update, 60_000)
-    return () => clearInterval(timer)
-  }, [event])
-
-  return status
+  const now = useClock(0)
+  return now ? getRegistrationStatus(event, new Date(now)) : initial
 }
 
 interface SignupControlProps {
@@ -45,7 +37,7 @@ export const SignupControl = ({ event, initial, className = '' }: SignupControlP
 
   // When sign-ups are not open this is deliberately not a link: a disabled-looking
   // anchor that still navigates is worse than no anchor at all.
-  if (state !== 'open' || !event.signupUrl) {
+  if (state !== 'open' || !httpUrl(event.signupUrl)) {
     return (
       <span
         aria-disabled="true"
@@ -59,7 +51,7 @@ export const SignupControl = ({ event, initial, className = '' }: SignupControlP
   return (
     <a
       className={`${base} bg-accent-text text-paper hover:opacity-90 ${className}`}
-      href={event.signupUrl}
+      href={httpUrl(event.signupUrl)!}
       rel="noopener noreferrer"
       target="_blank"
     >

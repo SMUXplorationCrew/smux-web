@@ -1,5 +1,5 @@
 import { SignupControl } from '@/components/SignupControl'
-import { getSignupStatus, type SignupInput } from '@/lib/signupState'
+import { getRegistrationStatus, type SignupInput } from '@/lib/signupState'
 
 interface SignupButtonProps {
   event: SignupInput & { signupUrl?: string | null }
@@ -15,5 +15,5 @@ interface SignupButtonProps {
  * static page cannot notice a sign-up window opening on its own.
  */
 export const SignupButton = ({ event, className = '' }: SignupButtonProps) => (
-  <SignupControl className={className} event={event} initial={getSignupStatus(event)} />
+  <SignupControl className={className} event={event} initial={getRegistrationStatus(event)} />
 )

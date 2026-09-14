@@ -1,36 +1,27 @@
 import type { Metadata } from 'next'
 import { CalendarGrid } from '@/components/CalendarGrid'
-import { EmptyState, Section } from '@/components/Section'
+import { Section } from '@/components/Section'
+import { eventView } from '@/lib/event-view'
+import { sgDateKey } from '@/lib/format'
 import { getEvents } from '@/lib/payload'
-
 export const metadata: Metadata = {
   title: 'Calendar',
-  description: 'Every SMUX session and trip, month by month.',
+  description:
+    'Plan your next SMUX activity. Singapore dates, club filters and calendar subscriptions.',
+  alternates: { canonical: '/calendar' },
 }
-
 export default async function CalendarPage() {
-  const events = await getEvents({ limit: 300 })
-
-  /**
-   * The opening month is resolved at build time. Because the page is pre-rendered, a
-   * "current month" computed here would freeze to whenever the build ran — so it opens
-   * on the month of the next upcoming event instead, which stays useful.
-   */
-  const now = new Date()
-  const nextEvent = events.find((e) => e.startsAt && new Date(e.startsAt) >= now)
-  const anchor = nextEvent?.startsAt ? new Date(nextEvent.startsAt) : now
-
+  const events = await getEvents()
+  const now = Date.now()
+  const [year, month] = sgDateKey(new Date(now)).split('-').map(Number)
   return (
-    <Section eyebrow="Plan ahead" title="Calendar" titleAs="h1">
-      {events.length > 0 ? (
-        <CalendarGrid
-          events={events}
-          initialMonth={anchor.getMonth()}
-          initialYear={anchor.getFullYear()}
-        />
-      ) : (
-        <EmptyState>Nothing scheduled yet. Events will appear here once published.</EmptyState>
-      )}
+    <Section title="Make room for adventure" titleAs="h1">
+      <CalendarGrid
+        events={events.map(eventView)}
+        initialNow={now}
+        initialYear={year}
+        initialMonth={month - 1}
+      />
     </Section>
   )
 }
