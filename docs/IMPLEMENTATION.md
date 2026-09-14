@@ -34,6 +34,11 @@ Paused at the user's request on 12 September 2026. See [HANDOFF.md](HANDOFF.md) 
 - Existing unit tests: 105 passed / 7 files. New features still require dedicated coverage.
 - Biome: passed with 28 warnings and one configuration deprecation notice; no lint errors.
 - Production build, upgrade migrations, integration/E2E and visual review: not completed.
-- Local snapshot commit requested on 14 September 2026. No pushes or deployments. No requested accounts created yet.
+- Snapshot pushed to `feat/smux-elite-upgrade` on 14 September 2026; branch tracking corrected. Main was restored by revert `1c943a9`. No deployment verification performed. No requested accounts created yet.
 
 Checkboxes above intentionally remain unchecked: source implementation does not establish complete delivery of a work package.
+
+
+## Dependency PR consolidation — 14 September 2026
+
+The working branch includes the updates proposed by Dependabot PR #8 (Next.js 16.3.3, already present) and PR #7 (Vitest 4.1.11, added with its matching lockfile dependencies). TypeScript passed and all 105 existing unit tests passed on Vitest 4.1.11. This does not change the outstanding migration, account provisioning or release-verification work above.

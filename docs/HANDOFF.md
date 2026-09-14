@@ -5,7 +5,7 @@ The user requested an immediate wrap-up before the full upgrade was finished. Th
 ## Branch and environment
 
 - Branch: `feat/smux-elite-upgrade`, created from freshly fetched `origin/main` at `5053fb5`.
-- The user requested a local work-in-progress snapshot commit on 14 September 2026. Nothing was pushed or deployed.
+- Snapshot committed and pushed to `feat/smux-elite-upgrade` on 14 September 2026. An accidental main update was restored by revert `1c943a9`; the working branch was rebased and its upstream corrected. Deployment state has not been verified.
 - Local `.env` and `.env.local` point to isolated Neon branch `dev-smux-elite-20260912` (`br-dry-violet-b3tsj23c`, expires 12 October 2026), cloned from `dev`.
 - Production data was not modified. The development clone still references existing R2 objects: do not run destructive media cleanup against it.
 - Old local environment backups are in `/tmp/smux-elite-original.env` and `/tmp/smux-elite-original.env.local`, mode 0600. These are temporary local files, not repository artifacts.
@@ -18,7 +18,7 @@ The user requested an immediate wrap-up before the full upgrade was finished. Th
 
 - Published-only anonymous data queries, role-aware draft access, inactive-user rejection and MC-only unlock.
 - Editor club ownership enforcement, safer URL handling, explicit environment validation and schema-push opt-in.
-- Next.js 16.3.3 dependency patch.
+- Next.js 16.3.3 dependency patch (absorbs Dependabot PR #8); Vitest 4.1.11 and matching lockfile dependencies (absorbs PR #7).
 - Full event pagination, clock-derived event/signup state, unavailable signup handling, Singapore date boundaries and UTF-8-safe calendar folding.
 - Cache invalidation hooks and persistent publication jobs with bounded retries.
 - Native registration capacity locking, waitlists, cancellation/promotion, expiring single-use check-in tokens.
