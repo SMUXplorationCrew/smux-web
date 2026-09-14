@@ -11,7 +11,10 @@ test.describe('Frontend', () => {
     await page.goto('http://localhost:3000')
 
     await expect(page).toHaveTitle(/SMUX/)
-    await expect(page.locator('h1').first()).toContainText('SMUXploration Crew')
+    // Structure, not copy: the hero headline is editor-controlled through
+    // siteSettings.heroHeading. Asserting its text made this test fail the moment the
+    // homepage was redesigned, which is exactly what this file says it avoids.
+    await expect(page.locator('h1').first()).toBeVisible()
     await expect(page.getByRole('navigation', { name: 'Main' }).first()).toBeVisible()
     await expect(page.locator('footer')).toBeVisible()
   })

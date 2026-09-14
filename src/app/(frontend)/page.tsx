@@ -26,19 +26,41 @@ export default async function HomePage() {
           <p className="mb-4 text-lead text-paper">
             SMUXploration Crew · Singapore Management University
           </p>
+          {/* The CMS carries heroHeading, motto and heroButtons, and their field
+              descriptions tell editors those control this hero. They did not — the
+              headline, subline and both buttons were hardcoded, so an editor changing
+              them saw nothing happen. The literals below are defaults, not the source. */}
           <h1 className="max-w-4xl text-hero-sm text-paper md:text-hero">
-            Your next adventure starts here.
+            {settings.heroHeading || 'Your next adventure starts here.'}
           </h1>
           <p className="mt-5 max-w-xl text-lead text-paper">
-            Six clubs. A whole world outside the classroom.
+            {settings.motto || 'Six clubs. A whole world outside the classroom.'}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link className="button bg-orange text-ink" href="#clubs">
-              Find your club
-            </Link>
-            <Link className="button border-paper/50 text-paper hover:bg-paper/10" href="/events">
-              See what's on
-            </Link>
+            {(settings.heroButtons?.length
+              ? settings.heroButtons
+              : [
+                  { id: 'default-clubs', label: 'Find your club', url: '#clubs', tone: 'primary' },
+                  {
+                    id: 'default-events',
+                    label: "See what's on",
+                    url: '/events',
+                    tone: 'secondary',
+                  },
+                ]
+            ).map((button) => (
+              <Link
+                key={button.id ?? button.url}
+                className={
+                  button.tone === 'secondary'
+                    ? 'button border-paper/50 text-paper hover:bg-paper/10'
+                    : 'button bg-orange text-ink'
+                }
+                href={button.url}
+              >
+                {button.label}
+              </Link>
+            ))}
           </div>
         </Container>
       </section>
