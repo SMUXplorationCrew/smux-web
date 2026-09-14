@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { InterestButton, NativeRegistration } from '@/components/AccountTools'
 import { MediaImage } from '@/components/MediaImage'
 import { RichText } from '@/components/RichText'
@@ -8,11 +8,11 @@ import { ShareButton } from '@/components/ShareButton'
 import { SaveButton } from '@/components/Shortlist'
 import { SignupButton } from '@/components/SignupButton'
 import { formatEventWhen } from '@/lib/format'
-import { getEventBySlug, getEvents } from '@/lib/payload'
+import { canonicalSlugFor, getEventBySlug, getEvents, slugParams } from '@/lib/payload'
 import { absolute } from '@/lib/site'
 import { httpUrl } from '@/lib/url'
 export async function generateStaticParams() {
-  return (await getEvents()).map((e) => ({ slug: e.slug }))
+  return slugParams(await getEvents())
 }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -26,7 +26,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const event = await getEventBySlug(slug)
-  if (!event) notFound()
+  if (!event) {
+    // The address may be a slug this document used to live at.
+    const canonical = await canonicalSlugFor('events', slug)
+    if (canonical) permanentRedirect(`/events/${canonical}`)
+    notFound()
+  }
   const club = typeof event.club === 'object' ? event.club : null
   const schema = {
     '@context': 'https://schema.org',

@@ -1,12 +1,12 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { MediaImage } from '@/components/MediaImage'
 import { RichText } from '@/components/RichText'
 import { Section } from '@/components/Section'
 import { ShareButton } from '@/components/ShareButton'
-import { getStories, getStory } from '@/lib/payload'
+import { canonicalSlugFor, getStories, getStory, slugParams } from '@/lib/payload'
 export async function generateStaticParams() {
-  return (await getStories()).map((s) => ({ slug: s.slug }))
+  return slugParams(await getStories())
 }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -20,7 +20,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const story = await getStory(slug)
-  if (!story) notFound()
+  if (!story) {
+    // The address may be a slug this document used to live at.
+    const canonical = await canonicalSlugFor('stories', slug)
+    if (canonical) permanentRedirect(`/stories/${canonical}`)
+    notFound()
+  }
   return (
     <Section
       title={story.title}

@@ -580,6 +580,10 @@ export interface Club {
     gallery?: string | null;
     committee?: string | null;
   };
+  /**
+   * Old addresses that still redirect here. Maintained automatically.
+   */
+  previousSlugs?: string[] | null;
   discovery?: {
     environment?: ('land' | 'water' | 'mixed') | null;
     commitment?: string | null;
@@ -762,6 +766,10 @@ export interface Event {
   externalId?: string | null;
   seriesId?: string | null;
   archived?: boolean | null;
+  /**
+   * Old addresses that still redirect here. Maintained automatically.
+   */
+  previousSlugs?: string[] | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1057,6 +1065,10 @@ export interface Page {
           }
       )[]
     | null;
+  /**
+   * Old addresses that still redirect here. Maintained automatically.
+   */
+  previousSlugs?: string[] | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1170,6 +1182,10 @@ export interface Story {
   longitude?: number | null;
   author?: string | null;
   photoCredit?: string | null;
+  /**
+   * Old addresses that still redirect here. Maintained automatically.
+   */
+  previousSlugs?: string[] | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1203,6 +1219,10 @@ export interface Campaign {
     [k: string]: unknown;
   } | null;
   clubs?: (number | Club)[] | null;
+  /**
+   * Old addresses that still redirect here. Maintained automatically.
+   */
+  previousSlugs?: string[] | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -1704,6 +1724,7 @@ export interface ClubsSelect<T extends boolean = true> {
         gallery?: T;
         committee?: T;
       };
+  previousSlugs?: T;
   discovery?:
     | T
     | {
@@ -1750,6 +1771,7 @@ export interface EventsSelect<T extends boolean = true> {
   externalId?: T;
   seriesId?: T;
   archived?: T;
+  previousSlugs?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1910,6 +1932,7 @@ export interface PagesSelect<T extends boolean = true> {
               blockName?: T;
             };
       };
+  previousSlugs?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -2038,6 +2061,7 @@ export interface StoriesSelect<T extends boolean = true> {
   longitude?: T;
   author?: T;
   photoCredit?: T;
+  previousSlugs?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -2056,6 +2080,7 @@ export interface CampaignsSelect<T extends boolean = true> {
   cover?: T;
   body?: T;
   clubs?: T;
+  previousSlugs?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { Blocks } from '@/components/Blocks'
 import { LiveEvents } from '@/components/LiveEvents'
 import { MediaImage } from '@/components/MediaImage'
@@ -14,13 +14,20 @@ import { SocialRow } from '@/components/SocialRow'
 import { eventLifecycle } from '@/lib/event-time'
 import { eventView } from '@/lib/event-view'
 import { joinAction } from '@/lib/join'
-import { getAlbums, getClubBySlug, getClubs, getEvents, getPeople } from '@/lib/payload'
+import {
+  canonicalSlugFor,
+  getAlbums,
+  getClubBySlug,
+  getClubs,
+  getEvents,
+  getPeople,
+  slugParams,
+} from '@/lib/payload'
 import type { Media } from '@/payload-types'
 
 /** Pre-renders all six club pages at build time. Nothing is fetched per request. */
 export async function generateStaticParams() {
-  const clubs = await getClubs()
-  return clubs.map((club) => ({ slug: club.slug }))
+  return slugParams(await getClubs())
 }
 
 export async function generateMetadata({
@@ -45,7 +52,12 @@ const isMedia = (value: unknown): value is Media =>
 export default async function ClubPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const club = await getClubBySlug(slug)
-  if (!club) notFound()
+  if (!club) {
+    // The address may be a slug this document used to live at.
+    const canonical = await canonicalSlugFor('clubs', slug)
+    if (canonical) permanentRedirect(`/clubs/${canonical}`)
+    notFound()
+  }
 
   const [events, albums, people] = await Promise.all([
     getEvents({ clubId: club.id, upcoming: true, limit: 6 }),

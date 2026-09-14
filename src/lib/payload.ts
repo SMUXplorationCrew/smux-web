@@ -32,6 +32,37 @@ export const publicDocuments = async <T extends CollectionSlug>(
   }
   return result
 }
+/**
+ * The current address of a document that used to live at `slug`, or null.
+ *
+ * Renaming a published slug otherwise abandons every inbound link to the old one — a
+ * printed poster, a Telegram message, a search result. `previousSlugs` is maintained by
+ * a beforeChange hook in `enhance.ts`; the routes use this to answer the old address
+ * with a permanent redirect instead of a 404.
+ *
+ * Depth 0: only the slug is needed, and populating relationships here would be wasted
+ * work on a path that exists to redirect.
+ */
+export const canonicalSlugFor = cache(
+  async (collection: CollectionSlug, slug: string): Promise<string | null> => {
+    const docs = await publicDocuments(
+      collection,
+      { and: [published, { previousSlugs: { in: [slug] } }] },
+      0,
+    )
+    const found = docs[0] as { slug?: string | null } | undefined
+    return found?.slug ?? null
+  },
+)
+
+/** Current slug plus every address that still redirects to it, for generateStaticParams. */
+export const slugParams = (docs: { slug?: string | null; previousSlugs?: string[] | null }[]) =>
+  docs.flatMap((doc) =>
+    [doc.slug, ...(doc.previousSlugs ?? [])]
+      .filter((s): s is string => Boolean(s))
+      .map((slug) => ({ slug })),
+  )
+
 export const getClubs = cache(() => publicDocuments('clubs', published, 1, 'name'))
 export const getClubBySlug = cache(
   async (slug: string) =>

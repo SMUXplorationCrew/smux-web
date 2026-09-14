@@ -1,11 +1,11 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { ClubCard } from '@/components/ClubCard'
 import { RichText } from '@/components/RichText'
 import { Section } from '@/components/Section'
 import { ShareButton } from '@/components/ShareButton'
-import { getCampaign, getCampaigns } from '@/lib/payload'
+import { canonicalSlugFor, getCampaign, getCampaigns, slugParams } from '@/lib/payload'
 export async function generateStaticParams() {
-  return (await getCampaigns()).map((c) => ({ slug: c.slug }))
+  return slugParams(await getCampaigns())
 }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -19,7 +19,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const campaign = await getCampaign(slug)
-  if (!campaign) notFound()
+  if (!campaign) {
+    // The address may be a slug this document used to live at.
+    const canonical = await canonicalSlugFor('campaigns', slug)
+    if (canonical) permanentRedirect(`/recruitment/${canonical}`)
+    notFound()
+  }
   return (
     <Section title={campaign.title} titleAs="h1" intro={campaign.intro}>
       <p className="text-lead">{campaign.venue}</p>

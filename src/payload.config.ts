@@ -147,9 +147,12 @@ export default buildConfig({
       description: 'Content management for SMUXploration Crew.',
     },
   },
+  // Operations collections go through enhanceCollection too. They did not, which meant
+  // anything cross-cutting added there silently skipped stories and campaigns — the
+  // slug-history redirect among them.
   collections: [Clubs, Events, Albums, People, Pages, Resources, Media, Users]
-    .map(enhanceCollection)
-    .concat(OperationsCollections),
+    .concat(OperationsCollections)
+    .map(enhanceCollection),
   globals: [SiteSettings],
   /**
    * The editor is configured for people who are not developers and will not read docs.

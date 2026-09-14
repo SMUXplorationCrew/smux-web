@@ -6,6 +6,9 @@ import { eventReadiness } from '@/lib/readiness'
 import { httpUrl } from '@/lib/url'
 import type { Event } from '@/payload-types'
 
+/** Collections whose slug appears in a public URL, so a rename needs a redirect. */
+const SLUG_HISTORY = ['events', 'clubs', 'stories', 'campaigns', 'pages']
+
 const mcField: { create: FieldAccess; update: FieldAccess } = {
   create: ({ req }) => req.user?.role === 'mc',
   update: ({ req }) => req.user?.role === 'mc',
@@ -170,6 +173,33 @@ export const enhanceCollection = (collection: CollectionConfig): CollectionConfi
           const errors = eventReadiness(merged).filter((i) => i.severity === 'error')
           if (errors.length) throw new APIError(errors.map((i) => i.message).join(' '), 400)
         }
+        return data
+      },
+    ]
+  }
+  // Renaming a published slug used to abandon every inbound link to the old address —
+  // a poster, a Telegram message, a Google result. The old slug is kept here and the
+  // route redirects permanently to the current one, so a rename costs nothing.
+  if (SLUG_HISTORY.includes(c.slug)) {
+    c.fields.push({
+      name: 'previousSlugs',
+      type: 'text',
+      hasMany: true,
+      index: true,
+      admin: {
+        readOnly: true,
+        description: 'Old addresses that still redirect here. Maintained automatically.',
+      },
+    })
+    c.hooks.beforeChange = [
+      ...(c.hooks.beforeChange || []),
+      ({ data, originalDoc }) => {
+        const retired = originalDoc?.slug
+        if (!data?.slug || !retired || data.slug === retired) return data
+        const history = new Set<string>([...(originalDoc?.previousSlugs ?? []), retired])
+        // A document must never redirect to itself: reusing an old slug would loop.
+        history.delete(data.slug)
+        data.previousSlugs = [...history]
         return data
       },
     ]
