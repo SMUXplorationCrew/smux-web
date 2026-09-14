@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/SMUXplorationCrew/smux-web/blob/main/SECURITY.md
+    about: Report privately, not as a public issue.
