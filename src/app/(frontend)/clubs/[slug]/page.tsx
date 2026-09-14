@@ -1,19 +1,14 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Blocks } from '@/components/Blocks'
-import { LiveEvents } from '@/components/LiveEvents'
+import { EventCard } from '@/components/EventCard'
 import { MediaImage } from '@/components/MediaImage'
 import { PersonCard } from '@/components/PersonCard'
-import { PhotoGallery } from '@/components/PhotoGallery'
 import { Reveal } from '@/components/Reveal'
 import { RichText } from '@/components/RichText'
 import { Container, EmptyState, Section } from '@/components/Section'
-import { SaveButton } from '@/components/Shortlist'
 import { SmartLink } from '@/components/SmartLink'
 import { SocialRow } from '@/components/SocialRow'
-import { eventLifecycle } from '@/lib/event-time'
-import { eventView } from '@/lib/event-view'
-import { joinAction } from '@/lib/join'
 import { getAlbums, getClubBySlug, getClubs, getEvents, getPeople } from '@/lib/payload'
 import type { Media } from '@/payload-types'
 
@@ -32,11 +27,7 @@ export async function generateMetadata({
   const club = await getClubBySlug(slug)
   if (!club) return { title: 'Club not found' }
 
-  return {
-    title: club.name,
-    description: club.tagline ?? undefined,
-    alternates: { canonical: `/clubs/${slug}` },
-  }
+  return { title: club.name, description: club.tagline ?? undefined }
 }
 
 const isMedia = (value: unknown): value is Media =>
@@ -73,19 +64,12 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
 
   const labels = club.labels
   const cta = club.joinCta
-  const action = joinAction(club)
   // Falls back to counts we can always compute, rather than to a claim about the club
   // that may not be true of it.
   const quickFacts = club.quickFacts?.length
     ? club.quickFacts
     : [
-        {
-          id: 'upcoming',
-          label: 'Upcoming events',
-          value: String(
-            events.filter((e) => ['upcoming', 'ongoing'].includes(eventLifecycle(e))).length,
-          ),
-        },
+        { id: 'upcoming', label: 'Upcoming events', value: String(events.length) },
         { id: 'committee', label: 'Committee', value: String(people.length) },
       ]
 
@@ -106,12 +90,6 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
               </div>
             ) : null}
             <h1 className="text-hero-sm text-paper md:text-hero">{club.name}</h1>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <SmartLink className="button button-primary" href={action.href}>
-                {action.label}
-              </SmartLink>
-              <SaveButton kind="club" id={club.id} />
-            </div>
             {club.tagline ? (
               <p className="mt-3 max-w-xl text-lead text-paper/85">{club.tagline}</p>
             ) : null}
@@ -119,24 +97,6 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
         </Container>
       </section>
 
-      <nav
-        aria-label="On this club page"
-        className="sticky top-0 z-20 border-b border-line bg-paper"
-      >
-        <Container className="flex flex-wrap gap-2 py-2">
-          {[
-            ['start', 'Start here'],
-            ['events', 'Events'],
-            ['photos', 'Photos'],
-            ['committee', 'Committee'],
-            ['join', 'Join'],
-          ].map(([id, label]) => (
-            <a className="button button-quiet" key={id} href={`#${id}`}>
-              {label}
-            </a>
-          ))}
-        </Container>
-      </nav>
       {/* Quick facts */}
       <section className="border-b border-line bg-off">
         <Container className="grid grid-cols-2 gap-6 py-8 md:grid-cols-4">
@@ -182,7 +142,7 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
       ) : null}
 
       {/* Sessions and joining — the two things a new student asks */}
-      <Section id="start" eyebrow="New to this?" title={labels?.startHere ?? 'Start here'}>
+      <Section eyebrow="New to this?" title={labels?.startHere ?? 'Start here'}>
         <div className="grid gap-8 md:grid-cols-2 md:gap-12">
           <div>
             <h3 className="text-card">Club sessions</h3>
@@ -190,9 +150,7 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
               {club.typicalSession ? (
                 <RichText data={club.typicalSession} />
               ) : (
-                <p className="text-meta text-muted">
-                  Ask the club for its current session schedule.
-                </p>
+                <p className="text-meta text-muted">[SESSION DETAILS TO BE CONFIRMED]</p>
               )}
             </div>
           </div>
@@ -202,9 +160,7 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
               {club.howToJoin ? (
                 <RichText data={club.howToJoin} />
               ) : (
-                <p className="text-meta text-muted">
-                  Use the contact below to ask about the next opportunity to join.
-                </p>
+                <p className="text-meta text-muted">[JOINING DETAILS TO BE CONFIRMED]</p>
               )}
             </div>
           </div>
@@ -230,19 +186,34 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
       </Section>
 
       {/* Upcoming events */}
-      <Section
-        id="events"
-        className="bg-off"
-        eyebrow="What's on"
-        title={labels?.events ?? 'Upcoming events'}
-      >
-        <LiveEvents events={events.map(eventView)} initialNow={Date.now()} limit={6} />
+      <Section className="bg-off" eyebrow="What's on" title={labels?.events ?? 'Upcoming events'}>
+        {events.length > 0 ? (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {events.map((event) => (
+              <EventCard event={event} key={event.id} showClub={false} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState>Nothing scheduled right now — check back after recruitment week.</EmptyState>
+        )}
       </Section>
 
       {/* Past trips */}
       {photos.length > 0 ? (
-        <Section id="photos" eyebrow="Past trips" title={labels?.gallery ?? 'Where we have been'}>
-          <PhotoGallery photos={photos} />
+        <Section eyebrow="Past trips" title={labels?.gallery ?? 'Where we have been'}>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {photos.map((photo) => (
+              <div className="relative aspect-square overflow-hidden" key={photo.id}>
+                <MediaImage
+                  className="transition-transform duration-500 hover:scale-[1.04]"
+                  fill
+                  media={photo}
+                  placeholderLabel=""
+                  sizes="(max-width: 768px) 50vw, 25vw"
+                />
+              </div>
+            ))}
+          </div>
         </Section>
       ) : null}
 
@@ -250,7 +221,6 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
       {people.length > 0 ? (
         <Section
           className="bg-off"
-          id="committee"
           eyebrow="Who runs it"
           title={labels?.committee ?? 'The committee'}
         >
@@ -298,20 +268,20 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
       <Blocks blocks={club.sections} />
 
       {/* Join CTA */}
-      <section id="join" className="bg-ink-deep">
+      <section className="bg-ink-deep">
         <Container className="py-16">
           <Reveal>
             <h2 className="text-section text-paper">{cta?.heading || 'Come along'}</h2>
             <p className="mt-3 max-w-xl text-lead text-paper/80">
               {cta?.body ||
-                'Ask the club about its next session, eligibility, costs and what to bring.'}
+                'You do not need to be a member to join in, and you do not need any experience. Say hello first and we will tell you exactly what to bring.'}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <SmartLink
                 className="inline-flex min-h-11 items-center bg-accent-text px-6 font-display text-meta tracking-button text-paper uppercase transition-transform duration-200 hover:-translate-y-0.5"
-                href={action.href}
+                href={cta?.buttonUrl || '/join'}
               >
-                {action.label}
+                {cta?.buttonLabel || 'How to join'}
               </SmartLink>
             </div>
             <SocialRow

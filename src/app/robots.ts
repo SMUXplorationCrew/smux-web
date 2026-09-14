@@ -16,16 +16,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       // The admin panel and the members-only area have nothing to gain from indexing,
       // and /resources would leak document titles into search results.
-      disallow: [
-        '/admin',
-        '/api/',
-        '/resources',
-        '/manage',
-        '/account',
-        '/preview',
-        '/invite',
-        '/login',
-      ],
+      disallow: ['/admin', '/api/', '/resources'],
     },
     sitemap: absolute('/sitemap.xml'),
   }

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ContactForm } from '@/components/ContactForm'
 import { EditorialPage } from '@/components/EditorialPage'
 import { MediaImage } from '@/components/MediaImage'
 import { EmptyState, Section } from '@/components/Section'
@@ -28,7 +27,7 @@ export default async function ContactPage() {
   return (
     <>
       <EditorialPage
-        fallbackNote="Choose a club below to reach its committee."
+        fallbackNote='Create a Page in the CMS with the slug "contact" to add an introduction here.'
         fallbackTitle="Contact"
         page={page}
       />
@@ -59,7 +58,6 @@ export default async function ContactPage() {
                   className="flex flex-col border border-line bg-paper p-6 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-accent"
                   data-club={club.accent ?? club.slug}
                   key={club.id}
-                  id={`club-${club.slug}`}
                 >
                   <div className="flex items-center gap-3">
                     {club.logo ? (
@@ -67,7 +65,7 @@ export default async function ContactPage() {
                         <MediaImage fill media={club.logo} placeholderLabel="" sizes="40px" />
                       </div>
                     ) : null}
-                    <h3 className="text-card text-accent-text">
+                    <h3 className="text-card text-accent">
                       <Link
                         className="hover:underline underline-offset-4"
                         href={`/clubs/${club.slug}`}
@@ -89,9 +87,7 @@ export default async function ContactPage() {
                       variant="inline"
                     />
                   ) : (
-                    <p className="mt-4 text-meta text-muted">
-                      Contact details are being confirmed.
-                    </p>
+                    <p className="mt-4 text-meta text-muted">[CONTACT TO BE CONFIRMED]</p>
                   )}
                 </article>
               )
@@ -101,11 +97,6 @@ export default async function ContactPage() {
           <EmptyState>Club contacts will appear here once the clubs are added.</EmptyState>
         )}
       </Section>
-      {settings.contactFormEnabled && (
-        <Section title="Send an enquiry">
-          <ContactForm clubs={clubs.map((c) => ({ id: c.id, name: c.name }))} />
-        </Section>
-      )}
     </>
   )
 }

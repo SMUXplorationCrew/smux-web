@@ -28,7 +28,6 @@ export const HeroCarousel = ({
 }: HeroCarouselProps) => {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
-  const [manualPause, setManualPause] = useState(false)
   const reduced = useRef(false)
 
   useEffect(() => {
@@ -41,10 +40,10 @@ export const HeroCarousel = ({
 
   useEffect(() => {
     // Someone who asked for less motion gets a still image, not a slower carousel.
-    if (images.length < 2 || paused || manualPause || reduced.current) return
+    if (images.length < 2 || paused || reduced.current) return
     const t = setInterval(advance, intervalMs)
     return () => clearInterval(t)
-  }, [images.length, paused, manualPause, advance, intervalMs])
+  }, [images.length, paused, advance, intervalMs])
 
   if (images.length === 0) {
     return <MediaImage fill media={null} placeholderLabel={placeholderLabel} sizes="100vw" />
@@ -81,29 +80,18 @@ export const HeroCarousel = ({
       ))}
 
       {images.length > 1 ? (
-        <div className="absolute inset-x-0 bottom-2 z-10 flex items-center justify-center gap-0">
-          <button
-            type="button"
-            className="min-h-11 px-3 text-meta text-paper"
-            aria-label={manualPause ? 'Resume photo carousel' : 'Pause photo carousel'}
-            onClick={() => setManualPause((v) => !v)}
-          >
-            {manualPause ? 'Play' : 'Pause'}
-          </button>
+        <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center gap-2">
           {images.map((img, i) => (
             <button
               aria-current={i === index}
               aria-label={`Show image ${i + 1} of ${images.length}`}
-              className="flex size-11 items-center justify-center"
+              className={`h-1.5 rounded-full transition-all ${
+                i === index ? 'w-6 bg-paper' : 'w-1.5 bg-paper/50 hover:bg-paper/80'
+              }`}
               key={typeof img === 'object' && img !== null ? (img as Media).id : String(img)}
               onClick={() => setIndex(i)}
               type="button"
-            >
-              <span
-                aria-hidden="true"
-                className={`h-1.5 rounded-full ${i === index ? 'w-6 bg-paper' : 'w-1.5 bg-paper/70'}`}
-              />
-            </button>
+            />
           ))}
         </div>
       ) : null}

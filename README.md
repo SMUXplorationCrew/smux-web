@@ -1,6 +1,3 @@
-> [!IMPORTANT]
-> **Upgrade branch is work in progress.** `feat/smux-elite-upgrade` was paused at the user's request on 12 September 2026. New source features are not yet release-verified; the upgrade migration and seven requested accounts are still pending. Read [the handoff](docs/HANDOFF.md) and [delivery ledger](docs/IMPLEMENTATION.md) before running or deploying. The original documentation below contains baseline route/test counts and rendering claims that have not yet been fully updated.
-
 <h1 align="center">SMUX</h1>
 
 <p align="center">

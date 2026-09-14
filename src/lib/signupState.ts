@@ -1,5 +1,3 @@
-import { type EventTime, eventLifecycle } from '@/lib/event-time'
-import { httpUrl } from '@/lib/url'
 /**
  * Sign-up state is derived, never stored. There is deliberately no status field on
  * an event: a human forgetting to flip it is the failure this rule exists to prevent.
@@ -8,11 +6,9 @@ import { httpUrl } from '@/lib/url'
  * a closed window wins over a not-yet-open one.
  */
 
-export type SignupState = 'not-open' | 'open' | 'closed' | 'unavailable' | 'ended' | 'cancelled'
+export type SignupState = 'not-open' | 'open' | 'closed'
 
-export interface SignupInput extends EventTime {
-  signupUrl?: string | null
-  registrationMode?: string | null
+export interface SignupInput {
   signupOpens?: string | Date | null
   signupCloses?: string | Date | null
   capacity?: number | null
@@ -115,16 +111,4 @@ export const getSignupStatus = (event: SignupInput, now: Date = new Date()): Sig
 
   // No opening date set means nothing is gating sign-ups yet.
   return { state: 'open', label: 'Sign up' }
-}
-
-/** The visitor-facing state also includes destination availability and event lifecycle. */
-export const getRegistrationStatus = (event: SignupInput, now = new Date()): SignupStatus => {
-  const lifecycle = eventLifecycle(event, now.getTime())
-  if (lifecycle === 'cancelled') return { state: 'cancelled', label: 'Event cancelled' }
-  if (lifecycle === 'past') return { state: 'ended', label: 'Event ended' }
-  const state = getSignupStatus(event, now)
-  if (state.state !== 'open') return state
-  if (event.registrationMode !== 'native' && !httpUrl(event.signupUrl))
-    return { state: 'unavailable', label: 'Details coming soon' }
-  return state
 }

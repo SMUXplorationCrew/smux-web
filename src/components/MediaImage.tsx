@@ -87,11 +87,9 @@ export const MediaImage = ({
     variants.length > 1 ? variants.map((v) => `${v.url} ${v.width}w`).join(', ') : undefined
 
   return (
-    // biome-ignore lint/performance/noImgElement: variants are generated on upload; no request-time optimization.
     <img
       alt={alt}
       className={fill ? `absolute inset-0 size-full object-cover ${className}` : className}
-      style={fill ? { objectPosition: `${doc.focalX ?? 50}% ${doc.focalY ?? 50}%` } : undefined}
       decoding="async"
       fetchPriority={priority ? 'high' : undefined}
       height={fill ? undefined : (doc.height ?? undefined)}

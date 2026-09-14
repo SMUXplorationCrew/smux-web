@@ -28,7 +28,7 @@ export default async function GalleryPage() {
             return (
               <article data-club={club?.accent ?? club?.slug} key={album.id}>
                 <header className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line pb-3">
-                  <h2 className="text-card">{album.title}</h2>
+                  <h3 className="text-card">{album.title}</h3>
                   <p className="font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
                     {club ? (
                       <Link className="hover:underline" href={`/clubs/${club.slug}`}>
@@ -42,18 +42,18 @@ export default async function GalleryPage() {
                   </p>
                 </header>
 
-                <Link className="mt-5 block" href={`/gallery/${album.id}`}>
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                    {photos.slice(0, 4).map((photo) => (
-                      <div key={photo.id} className="relative aspect-square">
-                        <MediaImage fill media={photo} sizes="(max-width:768px) 50vw,25vw" />
-                      </div>
-                    ))}
-                  </div>
-                  <span className="button button-quiet mt-4">
-                    View album · {photos.length} photos
-                  </span>
-                </Link>
+                <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {photos.map((photo) => (
+                    <div className="relative aspect-square" key={photo.id}>
+                      <MediaImage
+                        fill
+                        media={photo}
+                        placeholderLabel=""
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                      />
+                    </div>
+                  ))}
+                </div>
               </article>
             )
           })}

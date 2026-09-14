@@ -1,81 +1,74 @@
 'use client'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { NavLink } from '@/components/nav-links'
-export function MobileNav({ links }: { links: NavLink[] }) {
+
+/**
+ * One of the three deliberate client components. Everything else in the header is
+ * server-rendered; only the open/closed toggle needs to live in the browser.
+ */
+export const MobileNav = ({ links }: { links: NavLink[] }) => {
   const [open, setOpen] = useState(false)
-  const dialog = useRef<HTMLDialogElement>(null)
-  const toggle = useRef<HTMLButtonElement>(null)
   const pathname = usePathname()
+
+  // A menu that scrolls the page behind it feels broken on a phone.
   useEffect(() => {
     if (!open) return
-    const d = dialog.current
-    if (!d) return
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    d.showModal()
-    const resize = () => {
-      if (window.innerWidth >= 768) {
-        d.close()
-        setOpen(false)
-      }
-    }
-    window.addEventListener('resize', resize)
     return () => {
-      d.close()
       document.body.style.overflow = previous
-      window.removeEventListener('resize', resize)
-      toggle.current?.focus()
     }
   }, [open])
-  // Close on browser back/forward and programmatic navigation too.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: route changes close the navigation.
-  useEffect(() => setOpen(false), [pathname])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
   return (
     <>
       <button
-        ref={toggle}
-        className="icon-button md:hidden"
-        type="button"
-        aria-label="Open menu"
-        aria-haspopup="dialog"
         aria-expanded={open}
-        onClick={() => setOpen(true)}
+        aria-label={open ? 'Close menu' : 'Open menu'}
+        className="flex size-11 items-center justify-center md:hidden"
+        onClick={() => setOpen((v) => !v)}
+        type="button"
       >
-        <span aria-hidden="true">☰</span>
+        <span aria-hidden="true" className="relative block h-4 w-6">
+          <span
+            className={`absolute inset-x-0 top-0 h-0.5 bg-ink transition-transform ${open ? 'translate-y-[7px] rotate-45' : ''}`}
+          />
+          <span
+            className={`absolute inset-x-0 top-[7px] h-0.5 bg-ink transition-opacity ${open ? 'opacity-0' : ''}`}
+          />
+          <span
+            className={`absolute inset-x-0 bottom-0 h-0.5 bg-ink transition-transform ${open ? '-translate-y-[7px] -rotate-45' : ''}`}
+          />
+        </span>
       </button>
-      <dialog
-        ref={dialog}
-        className="mobile-dialog"
-        onCancel={() => setOpen(false)}
-        onClose={() => setOpen(false)}
-      >
-        <div className="flex items-center justify-between">
-          <Link href="/" className="font-display text-card" onClick={() => setOpen(false)}>
-            SMUX
-          </Link>
-          <button
-            className="icon-button"
-            type="button"
-            aria-label="Close menu"
-            onClick={() => setOpen(false)}
-          >
-            ×
-          </button>
-        </div>
-        <nav aria-label="Main" className="mt-6">
-          <ul>
+
+      {open ? (
+        <nav
+          aria-label="Main"
+          className="fixed inset-x-0 top-[var(--header-h)] bottom-0 z-40 overflow-y-auto bg-paper px-5 py-6 md:hidden"
+        >
+          <ul className="flex flex-col">
             {links.map((link) => (
-              <li key={link.href}>
+              <li className="border-b border-line" key={link.href}>
                 <Link
-                  aria-current={
-                    pathname === link.href || pathname.startsWith(`${link.href}/`)
-                      ? 'page'
-                      : undefined
-                  }
-                  className="flex min-h-14 items-center border-b border-line font-display text-card"
+                  className={`flex min-h-14 items-center font-display text-card uppercase ${
+                    pathname === link.href ? 'text-accent' : 'text-ink'
+                  }`}
                   href={link.href}
+                  // Closed on tap rather than by watching the path: navigating away
+                  // must not leave the panel covering the page it landed on.
                   onClick={() => setOpen(false)}
                 >
                   {link.label}
@@ -84,15 +77,7 @@ export function MobileNav({ links }: { links: NavLink[] }) {
             ))}
           </ul>
         </nav>
-        <div className="mt-8 flex flex-wrap gap-4">
-          <Link className="button button-primary" href="/explore" onClick={() => setOpen(false)}>
-            Find your adventure
-          </Link>
-          <Link className="button button-quiet" href="/shortlist" onClick={() => setOpen(false)}>
-            Saved adventures
-          </Link>
-        </div>
-      </dialog>
+      ) : null}
     </>
   )
 }

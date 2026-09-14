@@ -1,49 +1,63 @@
 import Link from 'next/link'
-import { MediaImage, resolveMedia } from '@/components/MediaImage'
-import { SaveButton } from '@/components/Shortlist'
+import { MediaImage } from '@/components/MediaImage'
 import { SignupLabel } from '@/components/SignupControl'
-import { formatDay, formatEventWhen } from '@/lib/format'
-import { getRegistrationStatus } from '@/lib/signupState'
-import type { Event } from '@/payload-types'
-export function EventCard({ event, showClub = true }: { event: Event; showClub?: boolean }) {
-  const club = typeof event.club === 'object' ? event.club : null
-  const cover = resolveMedia(event.cover)
+import { formatEventWhen } from '@/lib/format'
+import { getSignupStatus } from '@/lib/signupState'
+import type { Club, Event } from '@/payload-types'
+
+const clubOf = (club: Event['club']): Club | null =>
+  club && typeof club === 'object' ? (club as Club) : null
+
+interface EventCardProps {
+  event: Event
+  /** Club pages already sit inside a themed wrapper and don't need the club named. */
+  showClub?: boolean
+}
+
+export const EventCard = ({ event, showClub = true }: EventCardProps) => {
+  const club = clubOf(event.club)
+  const status = getSignupStatus(event)
+
   return (
     <article
-      data-club={showClub ? club?.accent : undefined}
-      className="flex h-full flex-col overflow-hidden rounded-lg border border-line bg-paper"
+      className="group flex flex-col border border-line bg-paper transition-[border-color,transform] duration-300 hover:-translate-y-1 hover:border-accent"
+      // Themes the card to its own club when it appears in a mixed list.
+      data-club={showClub ? (club?.accent ?? undefined) : undefined}
     >
-      {cover ? (
-        <Link href={`/events/${event.slug}`} className="relative block aspect-[16/9]">
-          <MediaImage fill media={cover} sizes="(max-width:640px) 100vw, 33vw" />
-        </Link>
-      ) : null}
-      <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="flex items-center justify-between gap-3">
-          <span className="rounded bg-accent-tint px-3 py-2 font-display text-lead text-accent-text">
-            {formatDay(event.startsAt)}
-          </span>
-          {showClub ? (
-            <span className="text-meta text-copy">{club?.name || 'SMUX-wide'}</span>
-          ) : null}
+      <Link className="relative block overflow-hidden" href={`/events/${event.slug}`}>
+        <div className="relative aspect-[3/2] w-full">
+          <MediaImage
+            className="transition-transform duration-500 group-hover:scale-[1.04]"
+            fill
+            media={event.cover}
+            placeholderLabel={club?.name ?? 'SMUX'}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
         </div>
+      </Link>
+
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        {showClub ? (
+          <span className="font-display text-eyebrow tracking-eyebrow text-accent-text uppercase">
+            {/* No club means the main committee runs it for all of SMUX. */}
+            {club?.name ?? 'SMUX'}
+          </span>
+        ) : null}
+
         <h3 className="text-card">
-          <Link className="hover:underline" href={`/events/${event.slug}`}>
+          <Link className="hover:text-accent" href={`/events/${event.slug}`}>
             {event.title}
           </Link>
         </h3>
-        <p className="text-meta text-copy">
+
+        <p className="text-meta text-muted">
           {formatEventWhen(event.startsAt, event.endsAt, event.timeTbc)}
-          {event.timeTbc ? ' · Time to be confirmed' : ''}
         </p>
-        {event.location ? <p className="text-meta text-copy">{event.location}</p> : null}
-        <SignupLabel event={event} initial={getRegistrationStatus(event)} className="mt-auto" />
-        <div className="flex flex-wrap gap-2">
-          <Link className="button button-primary" href={`/events/${event.slug}`}>
-            View event
-          </Link>
-          <SaveButton kind="event" id={event.id} />
-        </div>
+        {event.location ? <p className="text-meta text-muted">{event.location}</p> : null}
+
+        {/* Live, not build-time: a static card would otherwise keep showing the state
+            the page happened to be generated with. */}
+        <SignupLabel className="mt-auto pt-2" event={event} initial={status} />
       </div>
     </article>
   )

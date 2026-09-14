@@ -1,255 +1,131 @@
-// biome-ignore-all lint/a11y/noNoninteractiveTabindex: The calendar overflow region must support keyboard scrolling.
 'use client'
+
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
-import { useClock } from '@/components/Clock'
-import { eventEnd, eventLifecycle } from '@/lib/event-time'
-import { formatEventWhen, MONTH_NAMES, sgDateKey } from '@/lib/format'
-import type { Event } from '@/payload-types'
-export function CalendarGrid({
-  events,
-  initialYear,
-  initialMonth,
-  initialNow,
-}: {
+import { useMemo, useState } from 'react'
+import { MONTH_NAMES, sgDateKey, WEEKDAY_LABELS } from '@/lib/format'
+import type { Club, Event } from '@/payload-types'
+
+/**
+ * The third and last client component. Events are pre-rendered and handed over whole;
+ * only month navigation is interactive, so no month change touches the network.
+ */
+
+interface CalendarGridProps {
   events: Event[]
+  /** Month to open on, as {year, month} with month 0-indexed. */
   initialYear: number
   initialMonth: number
-  initialNow: number
-}) {
+}
+
+const clubOf = (event: Event): Club | null =>
+  typeof event.club === 'object' && event.club !== null ? (event.club as Club) : null
+
+export const CalendarGrid = ({ events, initialYear, initialMonth }: CalendarGridProps) => {
   const [cursor, setCursor] = useState({ year: initialYear, month: initialMonth })
-  const [view, setView] = useState('agenda')
-  const [club, setClub] = useState('')
-  const now = useClock(initialNow)
-  useEffect(() => {
-    const restore = () => {
-      const url = new URL(location.href),
-        month = url.searchParams.get('month')
-      const key =
-        month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month) ? month : sgDateKey(new Date()).slice(0, 7)
-      const [y, m] = key.split('-').map(Number)
-      setCursor({ year: y, month: m - 1 })
-      setClub(url.searchParams.get('club') || '')
-      setView(url.searchParams.get('view') || (window.innerWidth >= 768 ? 'month' : 'agenda'))
+
+  /** Events bucketed by the Singapore calendar day they start on. */
+  const byDay = useMemo(() => {
+    const map = new Map<string, Event[]>()
+    for (const event of events) {
+      if (!event.startsAt) continue
+      const key = sgDateKey(event.startsAt)
+      const list = map.get(key)
+      if (list) list.push(event)
+      else map.set(key, [event])
     }
-    restore()
-    window.addEventListener('popstate', restore)
-    return () => window.removeEventListener('popstate', restore)
-  }, [])
-  const sync = (next = cursor, nextView = view, nextClub = club) => {
-    setCursor(next)
-    setView(nextView)
-    setClub(nextClub)
-    const url = new URL(location.href)
-    url.searchParams.set('month', `${next.year}-${String(next.month + 1).padStart(2, '0')}`)
-    url.searchParams.set('view', nextView)
-    if (nextClub) url.searchParams.set('club', nextClub)
-    else url.searchParams.delete('club')
-    history.pushState(null, '', url)
-  }
-  const clubs = useMemo(
-    () => [
-      ...new Map(
-        events.flatMap((e) =>
-          typeof e.club === 'object' && e.club ? [[e.club.slug, e.club] as const] : [],
-        ),
-      ).values(),
-    ],
-    [events],
-  )
+    return map
+  }, [events])
+
   const { year, month } = cursor
-  const start = new Date(
-      `${year}-${String(month + 1).padStart(2, '0')}-01T00:00:00+08:00`,
-    ).getTime(),
-    end = new Date(Date.UTC(year, month + 1, 1) - 8 * 3600000).getTime()
-  const visible = events.filter(
-    (e) =>
-      (eventEnd(e) || Date.parse(e.startsAt)) > start &&
-      Date.parse(e.startsAt) < end &&
-      (!club || (typeof e.club === 'object' && e.club?.slug === club)),
-  )
-  const days = Array.from(
-    { length: new Date(Date.UTC(year, month + 1, 0)).getUTCDate() },
-    (_, i) => i + 1,
-  )
+  const firstOfMonth = new Date(Date.UTC(year, month, 1))
+  // Monday-first, matching how a Singapore student reads a week.
+  const leadingBlanks = (firstOfMonth.getUTCDay() + 6) % 7
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
+
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
+
   const step = (delta: number) => {
-    const date = new Date(Date.UTC(year, month + delta, 1))
-    sync({ year: date.getUTCFullYear(), month: date.getUTCMonth() })
+    setCursor((c) => {
+      const next = new Date(Date.UTC(c.year, c.month + delta, 1))
+      return { year: next.getUTCFullYear(), month: next.getUTCMonth() }
+    })
   }
+
+  const keyFor = (day: number) =>
+    `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            className="icon-button"
-            type="button"
-            aria-label="Previous month"
-            onClick={() => step(-1)}
-          >
-            ←
-          </button>
-          <h2 className="text-card" aria-live="polite">
-            {MONTH_NAMES[month]} {year}
-          </h2>
-          <button
-            className="icon-button"
-            type="button"
-            aria-label="Next month"
-            onClick={() => step(1)}
-          >
-            →
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            className="button button-quiet"
-            type="button"
-            onClick={() => {
-              const [y, m] = sgDateKey(new Date()).split('-').map(Number)
-              sync({ year: y, month: m - 1 })
-            }}
-          >
-            Today
-          </button>
-          {['agenda', 'month'].map((v) => (
-            <button
-              className="filter-chip"
-              type="button"
-              key={v}
-              aria-pressed={view === v}
-              onClick={() => sync(cursor, v)}
-            >
-              {v === 'agenda' ? 'Agenda' : 'Month'}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="my-6 flex flex-wrap items-end gap-3">
-        <label className="field">
-          Club
-          <select
-            className="input"
-            value={club}
-            onChange={(e) => sync(cursor, view, e.target.value)}
-          >
-            <option value="">All clubs</option>
-            {clubs.map((c) => (
-              <option key={c.id} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <a
-          className="button button-quiet"
-          href={`/calendar/feed${club ? `?club=${encodeURIComponent(club)}` : ''}`}
-        >
-          Download calendar
-        </a>
+      <div className="flex items-center justify-between gap-4">
         <button
-          className="button button-quiet"
+          aria-label="Previous month"
+          className="flex size-11 items-center justify-center border border-line hover:border-ink"
+          onClick={() => step(-1)}
           type="button"
-          onClick={() => {
-            location.href = `webcal://${location.host}/calendar/feed${club ? `?club=${encodeURIComponent(club)}` : ''}`
-          }}
         >
-          Subscribe
+          ←
+        </button>
+        <h2 className="font-display text-card uppercase">
+          {MONTH_NAMES[month]} {year}
+        </h2>
+        <button
+          aria-label="Next month"
+          className="flex size-11 items-center justify-center border border-line hover:border-ink"
+          onClick={() => step(1)}
+          type="button"
+        >
+          →
         </button>
       </div>
-      <p className="mb-6 text-meta text-copy">
-        All dates are shown in Singapore time. Subscribed calendars refresh on their own schedule.
-      </p>
-      {view === 'agenda' ? (
-        <ul className="divide-y divide-line border-y border-line">
-          {visible.map((event) => (
-            <li
-              key={event.id}
-              className="flex flex-col gap-2 py-5 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div>
-                <Link
-                  className="font-display text-card hover:underline"
-                  href={`/events/${event.slug}`}
-                >
-                  {event.title}
-                </Link>
-                <p className="mt-2 text-meta text-copy">
-                  {formatEventWhen(event.startsAt, event.endsAt, event.timeTbc)}
-                </p>
-              </div>
-              <span className="text-meta text-copy">
-                {eventLifecycle(event, now) === 'ongoing'
-                  ? 'Happening now'
-                  : typeof event.club === 'object'
-                    ? event.club?.name
-                    : 'SMUX-wide'}
-              </span>
-            </li>
-          ))}
-          {!visible.length ? (
-            <li className="py-8">No events this month. Try another month or club.</li>
-          ) : null}
-        </ul>
-      ) : (
-        <section
-          className="overflow-x-auto"
-          tabIndex={0}
-          aria-label="Month calendar; scroll horizontally on small screens"
-        >
-          <div className="grid min-w-[42rem] grid-cols-7 gap-px border border-line bg-line">
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-              <div key={d} className="bg-off p-3 text-center text-meta">
-                {d}
+
+      {/*
+        A seven-column month grid cannot compress below about 50px per cell on a phone,
+        which is narrower than a single event title. Rather than let that push the whole
+        page sideways, the grid keeps a usable minimum width and scrolls within itself.
+      */}
+      <div className="-mx-5 mt-6 overflow-x-auto px-5 md:mx-0 md:px-0">
+        <div className="grid min-w-[42rem] grid-cols-7 gap-px border border-line bg-line">
+          {WEEKDAY_LABELS.slice(1)
+            .concat(WEEKDAY_LABELS[0])
+            .map((label) => (
+              <div className="bg-off p-2 text-center" key={label}>
+                <span className="font-display text-eyebrow tracking-eyebrow text-muted uppercase">
+                  {label}
+                </span>
               </div>
             ))}
-            {days.map((day) => {
-              const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-              const inDay = visible.filter(
-                (e) =>
-                  sgDateKey(e.startsAt) <= key &&
-                  sgDateKey(new Date((eventEnd(e) || Date.parse(e.startsAt)) - 1)) >= key,
-              )
-              return (
-                <div
-                  key={key}
-                  className="min-h-28 bg-paper p-2"
-                  style={
-                    day === 1
-                      ? {
-                          gridColumnStart:
-                            ((new Date(Date.UTC(year, month, 1)).getUTCDay() + 6) % 7) + 1,
-                        }
-                      : undefined
-                  }
-                >
-                  <time
-                    dateTime={key}
-                    className={
-                      key === sgDateKey(new Date(now))
-                        ? 'font-semibold text-accent-text'
-                        : 'text-meta text-copy'
-                    }
-                  >
-                    {day}
-                  </time>
-                  <ul className="mt-2 flex flex-col gap-1">
-                    {inDay.map((e) => (
-                      <li key={e.id}>
+
+          {days.map((day) => {
+            const dayEvents = byDay.get(keyFor(day)) ?? []
+            return (
+              <div
+                className="min-h-24 bg-paper p-2"
+                key={keyFor(day)}
+                // The first of the month is offset into its weekday column instead of
+                // being preceded by blank cells, which would need array-index keys.
+                style={day === 1 ? { gridColumnStart: leadingBlanks + 1 } : undefined}
+              >
+                <span className="text-meta text-muted">{day}</span>
+                <ul className="mt-1 flex flex-col gap-1">
+                  {dayEvents.map((event) => {
+                    const club = clubOf(event)
+                    return (
+                      <li data-club={club?.accent ?? club?.slug} key={event.id}>
                         <Link
-                          className="flex min-h-11 items-center rounded bg-off p-2 text-meta hover:underline"
-                          href={`/events/${e.slug}`}
+                          className="block hyphens-auto break-words bg-accent-tint px-1.5 py-1 text-eyebrow text-ink hover:bg-accent hover:text-paper"
+                          href={`/events/${event.slug}`}
                         >
-                          {e.title}
+                          {event.title}
                         </Link>
                       </li>
-                    ))}
-                  </ul>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
+                    )
+                  })}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }

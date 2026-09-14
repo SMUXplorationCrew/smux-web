@@ -24,24 +24,7 @@ export const SiteSettings: GlobalConfig = {
   hooks: {
     afterChange: [revalidateSiteSettings],
   },
-  versions: true,
   fields: [
-    {
-      name: 'currentAcademicYear',
-      type: 'text',
-      admin: {
-        description:
-          'Current committee year, e.g. AY26/27. Empty follows the Singapore academic calendar.',
-      },
-    },
-    {
-      name: 'contactFormEnabled',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        description: 'Enable only when the committee monitors Contact requests in the CMS.',
-      },
-    },
     {
       type: 'tabs',
       tabs: [

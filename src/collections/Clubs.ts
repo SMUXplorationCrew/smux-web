@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { mcOnly, ownClubById, publishedClubOrOwner } from '@/access'
+import { mcOnly, ownClubById, publishedOrSignedIn } from '@/access'
 import { CONTENT_BLOCKS } from '@/blocks'
 import { revalidateClub } from '@/hooks/revalidate'
 
@@ -20,7 +20,7 @@ export const Clubs: CollectionConfig = {
       'Everything on your club page. You can only see and edit your own club; changes go live once you press Publish.',
   },
   access: {
-    read: publishedClubOrOwner,
+    read: publishedOrSignedIn,
     create: mcOnly,
     update: ownClubById,
     delete: mcOnly,
