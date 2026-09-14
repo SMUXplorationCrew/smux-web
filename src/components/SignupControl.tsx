@@ -35,9 +35,13 @@ export const SignupControl = ({ event, initial, className = '' }: SignupControlP
   const base =
     'inline-flex min-h-11 items-center justify-center px-6 font-display text-meta tracking-button uppercase transition-colors'
 
+  // Resolved once: the guard below and the href have to agree, and calling httpUrl
+  // twice invites them drifting apart if its parsing ever changes.
+  const href = httpUrl(event.signupUrl)
+
   // When sign-ups are not open this is deliberately not a link: a disabled-looking
   // anchor that still navigates is worse than no anchor at all.
-  if (state !== 'open' || !httpUrl(event.signupUrl)) {
+  if (state !== 'open' || !href) {
     return (
       <span
         aria-disabled="true"
@@ -51,7 +55,7 @@ export const SignupControl = ({ event, initial, className = '' }: SignupControlP
   return (
     <a
       className={`${base} bg-accent-text text-paper hover:opacity-90 ${className}`}
-      href={httpUrl(event.signupUrl)!}
+      href={href}
       rel="noopener noreferrer"
       target="_blank"
     >

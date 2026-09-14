@@ -260,6 +260,10 @@ export function NativeRegistration({ eventId }: { eventId: number }) {
       )}
       {token && (
         <div className="notice">
+          {/* biome-ignore lint/performance/noImgElement: next/image would route a
+              short-lived, private check-in token through the image optimizer and cache
+              it at the CDN. This is generated per request, not an R2 upload, so the
+              upload-time variant pipeline does not apply either. */}
           <img
             width={220}
             height={220}

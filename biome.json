@@ -6,7 +6,13 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/payload-types.ts", "!**/importMap.js", "!**/.next"]
+    "includes": [
+      "**",
+      "!**/payload-types.ts",
+      "!**/importMap.js",
+      "!**/src/migrations",
+      "!**/.next"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -17,7 +23,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "preset": "recommended"
     }
   },
   "javascript": {

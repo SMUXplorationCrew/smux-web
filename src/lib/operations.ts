@@ -46,7 +46,7 @@ export async function registration(
     await connection.query('BEGIN')
     const result = await connection.query('SELECT * FROM events WHERE id=$1 FOR UPDATE', [id])
     const row = result.rows[0]
-    if (!row || row._status !== 'published' || row.registration_mode !== 'native')
+    if (row?._status !== 'published' || row.registration_mode !== 'native')
       throw new Error('Registration is not available for this event.')
     const event: Partial<Event> = {
       startsAt: row.starts_at,
@@ -147,7 +147,7 @@ export async function checkIn(payload: Payload, user: User, token: string) {
     depth: 0,
   })
   const doc = found.docs[0]
-  if (!doc || !doc.checkInExpiresAt || Date.parse(doc.checkInExpiresAt) < Date.now())
+  if (!doc?.checkInExpiresAt || Date.parse(doc.checkInExpiresAt) < Date.now())
     throw new Error('Check-in code expired or invalid.')
   await scopedEvent(payload, user, Number(doc.event), true)
   if (doc.status !== 'registered') throw new Error('Only confirmed registrations can check in.')

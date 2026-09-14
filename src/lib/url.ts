@@ -37,4 +37,4 @@ export const httpUrl = (raw: string | null | undefined): string | null => {
 
 export const safeReturnPath = (raw: string | null | undefined, fallback = '/resources'): string =>
   // biome-ignore lint/suspicious/noControlCharactersInRegex: Reject whitespace and controls in redirect targets.
-  raw && raw.startsWith('/') && isInternalUrl(raw) && !/[\u0000-\u0020]/.test(raw) ? raw : fallback
+  raw?.startsWith('/') && isInternalUrl(raw) && !/[\u0000-\u0020]/.test(raw) ? raw : fallback

@@ -462,11 +462,17 @@
   }
 }
 
+/* The one place !important is correct: a reduced-motion request has to beat every
+   animation on the page, including ones declared later or more specifically. The
+   universal selector is inherent to that, hence the specificity suppression too. */
 @media (prefers-reduced-motion: reduce) {
+  /* biome-ignore lint/style/noDescendingSpecificity: a blanket reset is the point */
   *,
   *::before,
   *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: must override every animation */
     animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: must override every transition */
     transition-duration: 0.01ms !important;
   }
 }

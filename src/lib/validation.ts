@@ -54,7 +54,7 @@ const PLACEHOLDER = /\[[^\]]*\]/
 
 export const noPlaceholderWhenPublished = (
   value: unknown,
-  { data, siblingData }: { data?: { _status?: string }; siblingData?: unknown } = {},
+  { data }: { data?: { _status?: string }; siblingData?: unknown } = {},
 ) => {
   if (data?._status !== 'published') return true
   if (typeof value !== 'string' || !PLACEHOLDER.test(value)) return true

@@ -14,18 +14,16 @@ export const timestamp = (value: string | Date | null | undefined): number | nul
 export const nextDateKey = (key: string): string =>
   new Date(new Date(`${key}T00:00:00Z`).getTime() + 86400000).toISOString().slice(0, 10)
 
+/** Midnight SGT at the end of the calendar day this instant falls on. */
+const endOfSgDay = (value: string | Date): number =>
+  new Date(`${nextDateKey(sgDateKey(value))}T00:00:00+08:00`).getTime()
+
 export const eventEnd = (event: EventTime): number | null => {
-  const start = timestamp(event.startsAt)
-  if (start === null) return null
-  if (event.timeTbc)
-    return new Date(
-      `${nextDateKey(sgDateKey(event.endsAt || event.startsAt!))}T00:00:00+08:00`,
-    ).getTime()
+  const { startsAt } = event
+  if (!startsAt || timestamp(startsAt) === null) return null
+  if (event.timeTbc) return endOfSgDay(event.endsAt || startsAt)
   // Unknown end: continue displaying the event for its local calendar day. Never invent a clock time.
-  return (
-    timestamp(event.endsAt) ??
-    new Date(`${nextDateKey(sgDateKey(event.startsAt!))}T00:00:00+08:00`).getTime()
-  )
+  return timestamp(event.endsAt) ?? endOfSgDay(startsAt)
 }
 export const eventLifecycle = (
   event: EventTime,

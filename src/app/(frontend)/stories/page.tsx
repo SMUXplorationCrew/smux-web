@@ -5,7 +5,10 @@ import { getStories } from '@/lib/payload'
 export const metadata = { title: 'Adventure stories', alternates: { canonical: '/stories' } }
 export default async function Page() {
   const stories = await getStories()
-  const places = stories.filter((s) => s.latitude != null && s.longitude != null)
+  const places = stories.filter(
+    (s): s is (typeof stories)[number] & { latitude: number; longitude: number } =>
+      s.latitude != null && s.longitude != null,
+  )
   return (
     <Section
       title="Out there, together"
@@ -69,8 +72,8 @@ export default async function Page() {
                 aria-label={s.destination || s.title}
                 className="absolute flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
                 style={{
-                  left: `${((s.longitude! + 180) / 360) * 100}%`,
-                  top: `${((90 - s.latitude!) / 180) * 100}%`,
+                  left: `${((s.longitude + 180) / 360) * 100}%`,
+                  top: `${((90 - s.latitude) / 180) * 100}%`,
                 }}
               >
                 <span className="size-3 rounded-full bg-orange ring-2 ring-ink" />

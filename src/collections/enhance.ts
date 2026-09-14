@@ -1,6 +1,6 @@
-import type { CollectionConfig, Field, FieldAccess } from 'payload'
+import type { CollectionConfig, FieldAccess } from 'payload'
 import { APIError } from 'payload'
-import { isEditorOrMc, mcOnly, ownClub, resolveClubId, selfOrMc } from '@/access'
+import { isEditorOrMc, mcOnly, resolveClubId, selfOrMc } from '@/access'
 import { revalidateSiteSettings } from '@/hooks/revalidate'
 import { eventReadiness } from '@/lib/readiness'
 import { httpUrl } from '@/lib/url'

@@ -371,14 +371,16 @@ export function Workspace({
                 className="button button-quiet"
                 disabled={busy}
                 type="button"
-                onClick={(e) =>
+                onClick={(e) => {
+                  const form = e.currentTarget.form
+                  if (!form) return
                   run({
                     action: 'import',
                     rows,
-                    clubId: new FormData(e.currentTarget.form!).get('clubId'),
+                    clubId: new FormData(form).get('clubId'),
                     apply: true,
                   })
-                }
+                }}
               >
                 Apply validated rows as drafts
               </button>

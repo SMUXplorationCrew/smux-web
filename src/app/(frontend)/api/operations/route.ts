@@ -17,7 +17,6 @@ import {
 import { getPayloadClient } from '@/lib/payload'
 import { siteUrl } from '@/lib/site'
 import { httpUrl } from '@/lib/url'
-import type { Event } from '@/payload-types'
 
 export const dynamic = 'force-dynamic'
 const text = (value: unknown, max = 2000) =>
@@ -102,11 +101,20 @@ export async function POST(request: Request) {
       const req = await createLocalReq({ context: { skipPublication: true } }, payload)
       req.transactionID = transactionID
       try {
-        await (
-          payload.db.sessions![transactionID].db as {
-            execute: (query: ReturnType<typeof sql>) => Promise<unknown>
-          }
-        ).execute(sql`SELECT id FROM invitations WHERE token_hash=${hashToken(token)} FOR UPDATE`)
+        // The row lock has to go through the transaction's own connection, not the
+        // pool: taking it on a different connection would lock a row this transaction
+        // cannot see, and two people accepting the same invitation would both pass.
+        // Resolve it explicitly rather than asserting — if the adapter ever stops
+        // exposing sessions, this must fail loudly instead of throwing "cannot read
+        // properties of undefined" from inside a half-open transaction.
+        const session = payload.db.sessions?.[transactionID]
+        if (!session) throw new Error('Transaction session unavailable.')
+        const tx = session.db as {
+          execute: (query: ReturnType<typeof sql>) => Promise<unknown>
+        }
+        await tx.execute(
+          sql`SELECT id FROM invitations WHERE token_hash=${hashToken(token)} FOR UPDATE`,
+        )
         const invitation = (
           await payload.find({
             collection: 'invitations',

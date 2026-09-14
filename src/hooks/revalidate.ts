@@ -1,6 +1,6 @@
 import { revalidatePath } from 'next/cache.js'
 import { after } from 'next/server'
-import type { Payload, PayloadRequest } from 'payload'
+import type { PayloadRequest } from 'payload'
 
 interface HookDoc {
   id?: number | string
