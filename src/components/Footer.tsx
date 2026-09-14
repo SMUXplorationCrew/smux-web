@@ -7,11 +7,20 @@ const DEFAULT_NOTE = 'SMUXploration Crew, Singapore Management University.'
 
 export const Footer = async () => {
   const [settings, clubs] = await Promise.all([getSiteSettings(), getClubs()])
-  const links = resolveNavLinks(settings?.nav)
+  const links = [
+    ...resolveNavLinks(settings?.nav),
+    ...[
+      { href: '/calendar', label: 'Calendar' },
+      { href: '/gallery', label: 'Gallery' },
+      { href: '/search', label: 'Search' },
+      { href: '/account', label: 'Account' },
+      { href: '/privacy', label: 'Privacy' },
+    ],
+  ].filter((item, index, all) => all.findIndex((x) => x.href === item.href) === index)
   const year = new Date().getFullYear()
 
   return (
-    <footer className="mt-24 bg-ink-deep text-paper">
+    <footer className="mt-12 bg-ink-deep text-paper">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <p className="font-display text-card uppercase">
@@ -23,7 +32,7 @@ export const Footer = async () => {
         </div>
 
         <nav aria-label="Clubs">
-          <h2 className="font-display text-eyebrow tracking-eyebrow text-paper/60 uppercase">
+          <h2 className="font-display text-eyebrow tracking-eyebrow text-paper/75 uppercase">
             Clubs
           </h2>
           <ul className="mt-3 flex flex-col">
@@ -39,13 +48,13 @@ export const Footer = async () => {
                 </li>
               ))
             ) : (
-              <li className="text-meta text-paper/50">Clubs coming soon</li>
+              <li className="text-meta text-paper/75">Clubs coming soon</li>
             )}
           </ul>
         </nav>
 
         <nav aria-label="Site">
-          <h2 className="font-display text-eyebrow tracking-eyebrow text-paper/60 uppercase">
+          <h2 className="font-display text-eyebrow tracking-eyebrow text-paper/75 uppercase">
             Explore
           </h2>
           <ul className="mt-3 flex flex-col">
@@ -63,7 +72,7 @@ export const Footer = async () => {
         </nav>
 
         <div>
-          <h2 className="font-display text-eyebrow tracking-eyebrow text-paper/60 uppercase">
+          <h2 className="font-display text-eyebrow tracking-eyebrow text-paper/75 uppercase">
             Get in touch
           </h2>
           <SocialRow
@@ -78,8 +87,8 @@ export const Footer = async () => {
 
       <div className="border-t border-paper/15">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-5 py-6">
-          <p className="text-meta text-paper/50">{settings?.footer?.note || DEFAULT_NOTE}</p>
-          <p className="text-meta text-paper/40">&copy; {year}</p>
+          <p className="text-meta text-paper/75">{settings?.footer?.note || DEFAULT_NOTE}</p>
+          <p className="text-meta text-paper/75">&copy; {year}</p>
         </div>
       </div>
     </footer>

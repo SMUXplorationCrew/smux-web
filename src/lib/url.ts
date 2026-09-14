@@ -1,31 +1,40 @@
-/**
- * URLs typed into the CMS reach the public site as hrefs, so they are validated here
- * before they get there.
- *
- * The rule is an allow-list, not a block-list: a path, a fragment, http(s), mailto or
- * tel. `javascript:` is the obvious thing that must never survive, but `data:` is worth
- * excluding for the same reason — both turn a text field an editor can fill into a
- * script that runs for every visitor.
- */
-
-const ALLOWED_SCHEME = /^(https?:|mailto:|tel:)/i
+/** Canonical URL boundary for CMS-authored links. */
+export const isInternalUrl = (href: string): boolean =>
+  (href.startsWith('/') && !href.startsWith('//') && !href.includes('\\')) || href.startsWith('#')
 
 export const safeUrl = (raw: string | null | undefined): string | null => {
   const value = raw?.trim()
-  if (!value) return null
-
-  // Site-relative paths and in-page anchors.
-  if (value.startsWith('/') || value.startsWith('#')) return value
-
-  if (ALLOWED_SCHEME.test(value)) return value
-
-  // A scheme we do not allow. Anything else with a colon before the first slash is
-  // treated as a scheme attempt rather than being quietly prefixed with https://.
-  if (/^[a-z][a-z0-9+.-]*:/i.test(value)) return null
-
-  // Bare host, e.g. "smux.sg/join" — the most common way an editor writes a link.
-  return `https://${value}`
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: Reject control characters in CMS URLs.
+  if (!value || /[\u0000-\u001f\u007f\\]/.test(value) || /\[[^\]]*\]/.test(value)) return null
+  if (isInternalUrl(value)) return value
+  if (/^(mailto:|tel:)/i.test(value)) return /\s/.test(value) ? null : value
+  if (/^[a-z][a-z0-9+.-]*:/i.test(value) && !/^https?:\/\//i.test(value)) return null
+  const candidate = value.startsWith('//')
+    ? `https:${value}`
+    : /^https?:\/\//i.test(value)
+      ? value
+      : `https://${value}`
+  try {
+    const url = new URL(candidate)
+    if (
+      !['http:', 'https:'].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      /\s/.test(candidate)
+    )
+      return null
+    if (!url.hostname.includes('.') && url.hostname !== 'localhost') return null
+    return candidate
+  } catch {
+    return null
+  }
 }
 
-/** Internal links get client-side navigation; everything else opens in a new tab. */
-export const isInternalUrl = (href: string): boolean => href.startsWith('/') || href.startsWith('#')
+export const httpUrl = (raw: string | null | undefined): string | null => {
+  const url = safeUrl(raw)
+  return url && /^https?:\/\//i.test(url) ? url : null
+}
+
+export const safeReturnPath = (raw: string | null | undefined, fallback = '/resources'): string =>
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: Reject whitespace and controls in redirect targets.
+  raw && raw.startsWith('/') && isInternalUrl(raw) && !/[\u0000-\u0020]/.test(raw) ? raw : fallback

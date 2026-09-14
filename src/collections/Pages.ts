@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { mcOnly, publishedOrSignedIn } from '@/access'
+import { mcOnly, publishedOrMc } from '@/access'
 import { CONTENT_BLOCKS } from '@/blocks'
 import { revalidatePage } from '@/hooks/revalidate'
 
@@ -19,7 +19,7 @@ export const Pages: CollectionConfig = {
     description: 'The About, Join and Contact pages. Everything on them is editable here.',
   },
   access: {
-    read: publishedOrSignedIn,
+    read: publishedOrMc,
     create: mcOnly,
     update: mcOnly,
     delete: mcOnly,

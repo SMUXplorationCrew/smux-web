@@ -72,7 +72,7 @@ export const formatEventWhen = (
   if (!start) return ''
 
   const end = valid(endsAt)
-  const sameDay = end ? formatDay(start) === formatDay(end) : true
+  const sameDay = end ? sgDateKey(start) === sgDateKey(end) : true
 
   if (timeTbc) {
     return !end || sameDay

@@ -47,11 +47,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     // suppressHydrationWarning covers the data-js attribute the script below sets:
     // React did not render it, and without this it warns on every page.
-    <html
-      className={`${sairaCondensed.variable} ${barlow.variable}`}
-      lang="en"
-      suppressHydrationWarning
-    >
+    <html className={`${sairaCondensed.variable} ${barlow.variable}`} lang="en">
       <body className="flex min-h-screen flex-col">
         {/*
           Marks that JavaScript is running, before anything paints.
@@ -59,10 +55,6 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           visitor with JS disabled or broken gets a fully visible page rather than a
           blank one waiting on an observer that will never run.
         */}
-        <script
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: a fixed literal with no interpolation, which has to execute before first paint — next/script cannot run that early.
-          dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.js='1'" }}
-        />
         <a
           className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[60] focus:bg-ink focus:px-4 focus:py-2 focus:font-display focus:text-meta focus:text-paper focus:uppercase"
           href="#main"

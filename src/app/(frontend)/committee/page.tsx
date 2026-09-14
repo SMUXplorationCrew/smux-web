@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Blocks } from '@/components/Blocks'
-import { EventCard } from '@/components/EventCard'
+import { LiveEvents } from '@/components/LiveEvents'
 import { MediaImage } from '@/components/MediaImage'
 import { PersonCard } from '@/components/PersonCard'
 import { Reveal } from '@/components/Reveal'
 import { RichText } from '@/components/RichText'
 import { Container, EmptyState, Section } from '@/components/Section'
+import { eventView } from '@/lib/event-view'
 import { getEvents, getPeople, getSiteSettings } from '@/lib/payload'
 
 export const metadata: Metadata = {
@@ -64,15 +66,7 @@ export default async function CommitteePage() {
       ) : null}
 
       <Section eyebrow="SMUX-wide" title={copy?.eventsTitle ?? 'Events we run'}>
-        {smuxWide.length > 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {smuxWide.map((event) => (
-              <EventCard event={event} key={event.id} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState>No SMUX-wide events coming up right now.</EmptyState>
-        )}
+        <LiveEvents events={smuxWide.map(eventView)} initialNow={Date.now()} />
       </Section>
 
       <Section className="bg-off" eyebrow="Who we are" title={copy?.peopleTitle ?? 'The committee'}>
@@ -83,13 +77,15 @@ export default async function CommitteePage() {
             ))}
           </div>
         ) : (
-          <EmptyState>
-            Main committee photos have not been added yet. Add People in the CMS with the club left
-            empty and they will appear here.
-          </EmptyState>
+          <EmptyState>The current committee roster is being confirmed.</EmptyState>
         )}
       </Section>
 
+      <Section title="Crews through the years">
+        <Link className="button button-quiet" href="/committee/archive">
+          Explore the committee archive
+        </Link>
+      </Section>
       <Blocks blocks={settings?.committeeBlocks} />
     </>
   )

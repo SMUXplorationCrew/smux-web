@@ -377,12 +377,12 @@
       transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
   @media (prefers-reduced-motion: no-preference) {
-    [data-js="1"] [data-reveal="idle"] {
+    [data-reveal="waiting"] {
       opacity: 0;
       transform: translateY(14px);
     }
     /* One entrance, on the copy over the hero photo, on first paint only. */
-    [data-js="1"] .hero-enter {
+    .hero-enter {
       animation: hero-enter 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
     }
   }
@@ -468,5 +468,185 @@
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Shared interaction primitives. Club palettes continue to cascade through these. */
+@layer components {
+  .button {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.3rem;
+    border: 1px solid transparent;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .button-primary {
+    background: var(--color-accent-text);
+    color: white;
+  }
+  .button-primary:hover {
+    filter: brightness(0.9);
+  }
+  .button-quiet {
+    border-color: var(--color-line);
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+  .button-quiet:hover {
+    background: var(--color-off);
+    border-color: var(--color-ink);
+  }
+  .button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+  .icon-button {
+    display: inline-flex;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+  }
+  .field {
+    display: grid;
+    gap: 0.4rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  .input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.25rem;
+    color: var(--color-ink);
+    background: white;
+    font: inherit;
+  }
+  .input:focus {
+    outline: 2px solid var(--color-accent-text);
+    outline-offset: 2px;
+  }
+  .notice {
+    padding: 1rem;
+    background: var(--color-off);
+    border-left: 3px solid var(--color-accent-text);
+  }
+  .mobile-dialog {
+    position: fixed;
+    margin: 0;
+    inset: 0 0 0 auto;
+    width: min(100%, 30rem);
+    max-width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 1.25rem;
+    border: 0;
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+  .mobile-dialog::backdrop {
+    background: rgb(0 0 0 / 0.45);
+  }
+  .page-lead {
+    padding-block: clamp(2.5rem, 6vw, 5rem);
+    border-bottom: 1px solid var(--color-line);
+    background: var(--color-off);
+  }
+  .page-lead h1 {
+    font-size: clamp(2.7rem, 6vw, 5.2rem);
+    max-width: 16ch;
+  }
+  .page-lead p {
+    max-width: 60ch;
+    margin-top: 1rem;
+    color: var(--color-copy);
+  }
+  .filter-chip {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+  .filter-chip[aria-pressed="true"] {
+    background: var(--color-accent-text);
+    border-color: var(--color-accent-text);
+    color: white;
+  }
+  .sticky-action {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem max(1.25rem, env(safe-area-inset-right));
+    border-top: 1px solid var(--color-line);
+    background: var(--color-paper);
+    box-shadow: 0 -4px 20px rgb(0 0 0 / 0.04);
+  }
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: 1.5rem;
+  }
+  .workspace-panel {
+    padding: 1.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.5rem;
+    background: white;
+  }
+  .workspace-panel h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+  .workspace-panel form {
+    display: grid;
+    gap: 1rem;
+  }
+  .lightbox {
+    width: min(96vw, 80rem);
+    max-height: 96dvh;
+    padding: 1rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: var(--color-ink);
+    color: white;
+  }
+  .lightbox::backdrop {
+    background: rgb(0 0 0 / 0.8);
+  }
+  .lightbox img {
+    max-height: 75dvh;
+    width: 100%;
+    object-fit: contain;
+  }
+  :is(a, button, summary):focus-visible {
+    outline: 3px solid var(--color-accent-text);
+    outline-offset: 4px;
+  }
+  section[id] {
+    scroll-margin-top: 6rem;
+  }
+}
+@media (max-width: 767px) {
+  footer .footer-columns {
+    grid-template-columns: 1fr 1fr;
   }
 }

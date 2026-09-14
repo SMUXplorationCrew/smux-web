@@ -12,13 +12,10 @@ export interface NavLink {
  */
 export const NAV_LINKS: NavLink[] = [
   { href: '/clubs', label: 'Clubs' },
-  { href: '/events', label: 'Events' },
-  { href: '/calendar', label: 'Calendar' },
-  { href: '/gallery', label: 'Gallery' },
+  { href: '/events', label: "What's on" },
+  { href: '/stories', label: 'Stories' },
   { href: '/about', label: 'About' },
-  { href: '/committee', label: 'Committee' },
-  { href: '/join', label: 'Join' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/join', label: 'Join us' },
 ]
 
 export interface NavSetting {

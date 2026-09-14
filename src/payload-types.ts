@@ -75,6 +75,17 @@ export interface Config {
     resources: Resource;
     media: Media;
     users: User;
+    stories: Story;
+    campaigns: Campaign;
+    benefits: Benefit;
+    registrations: Registration;
+    interests: Interest;
+    'audit-log': AuditLog;
+    'publish-jobs': PublishJob;
+    metrics: Metric;
+    invitations: Invitation;
+    'contact-requests': ContactRequest;
+    'link-checks': LinkCheck;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -90,6 +101,17 @@ export interface Config {
     resources: ResourcesSelect<false> | ResourcesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    stories: StoriesSelect<false> | StoriesSelect<true>;
+    campaigns: CampaignsSelect<false> | CampaignsSelect<true>;
+    benefits: BenefitsSelect<false> | BenefitsSelect<true>;
+    registrations: RegistrationsSelect<false> | RegistrationsSelect<true>;
+    interests: InterestsSelect<false> | InterestsSelect<true>;
+    'audit-log': AuditLogSelect<false> | AuditLogSelect<true>;
+    'publish-jobs': PublishJobsSelect<false> | PublishJobsSelect<true>;
+    metrics: MetricsSelect<false> | MetricsSelect<true>;
+    invitations: InvitationsSelect<false> | InvitationsSelect<true>;
+    'contact-requests': ContactRequestsSelect<false> | ContactRequestsSelect<true>;
+    'link-checks': LinkChecksSelect<false> | LinkChecksSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -558,6 +580,13 @@ export interface Club {
     gallery?: string | null;
     committee?: string | null;
   };
+  discovery?: {
+    environment?: ('land' | 'water' | 'mixed') | null;
+    commitment?: string | null;
+    costGuide?: string | null;
+    beginnerFriendly?: boolean | null;
+    verifiedAt?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -578,6 +607,8 @@ export interface Media {
    * Which club owns this image. Set automatically for club editors.
    */
   club?: (number | null) | Club;
+  credit?: string | null;
+  caption?: string | null;
   prefix?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -681,6 +712,56 @@ export interface Event {
     };
     [k: string]: unknown;
   } | null;
+  registrationMode?: ('external' | 'native') | null;
+  cancelled?: boolean | null;
+  cancellationReason?: string | null;
+  organizerContact?: string | null;
+  prerequisites?: string | null;
+  itinerary?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  packingList?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  activity?: ('ride' | 'dive' | 'paddle' | 'skate' | 'hike' | 'social' | 'other') | null;
+  /**
+   * Only select when confirmed for this specific activity.
+   */
+  beginnerFriendly?: boolean | null;
+  /**
+   * Editorial review is separate from signup timing.
+   */
+  reviewState?: ('draft' | 'ready' | 'approved') | null;
+  /**
+   * Stable import key. Leave empty for manually created events.
+   */
+  externalId?: string | null;
+  seriesId?: string | null;
+  archived?: boolean | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -707,6 +788,8 @@ export interface Album {
    */
   date?: string | null;
   photos: (number | Media)[];
+  summary?: string | null;
+  photoCredit?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -736,6 +819,8 @@ export interface Person {
    * Email or Telegram handle. Leave as [BRACKETS] if unverified.
    */
   contact?: string | null;
+  displayOrder?: number | null;
+  archived?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -997,6 +1082,8 @@ export interface Resource {
    * Academic year this belongs to, e.g. "AY26/27".
    */
   ay?: string | null;
+  audience?: ('members' | 'committee') | null;
+  category?: ('safety' | 'packing' | 'handover' | 'other') | null;
   prefix?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -1024,6 +1111,11 @@ export interface User {
    * Which club this editor may manage. Required for editors.
    */
   club?: (number | null) | Club;
+  active?: boolean | null;
+  /**
+   * This editor must have an MC member approve publication.
+   */
+  requiresReview?: boolean | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -1042,6 +1134,234 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stories".
+ */
+export interface Story {
+  id: number;
+  title: string;
+  slug: string;
+  club?: (number | null) | Club;
+  summary: string;
+  cover?: (number | null) | Media;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  album?: (number | null) | Album;
+  /**
+   * Public destination only. Never disclose participant locations.
+   */
+  destination?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  author?: string | null;
+  photoCredit?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "campaigns".
+ */
+export interface Campaign {
+  id: number;
+  title: string;
+  slug: string;
+  intro?: string | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  venue?: string | null;
+  cover?: (number | null) | Media;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  clubs?: (number | Club)[] | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "benefits".
+ */
+export interface Benefit {
+  id: number;
+  title: string;
+  club?: (number | null) | Club;
+  description: string;
+  eligibility: string;
+  url?: string | null;
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registrations".
+ */
+export interface Registration {
+  id: number;
+  reference: string;
+  event: number | Event;
+  club?: (number | null) | Club;
+  user: number | User;
+  status: 'registered' | 'waitlisted' | 'cancelled';
+  checkedInAt?: string | null;
+  checkInTokenHash?: string | null;
+  checkInExpiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "interests".
+ */
+export interface Interest {
+  id: number;
+  user: number | User;
+  event?: (number | null) | Event;
+  club?: (number | null) | Club;
+  key: string;
+  consentedAt: string;
+  active?: boolean | null;
+  lastNotifiedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-log".
+ */
+export interface AuditLog {
+  id: number;
+  action: string;
+  actor?: (number | null) | User;
+  club?: (number | null) | Club;
+  collectionName?: string | null;
+  documentId?: string | null;
+  /**
+   * Redacted operation metadata, never credentials or full member records.
+   */
+  details?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "publish-jobs".
+ */
+export interface PublishJob {
+  id: number;
+  paths:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  state?: ('pending' | 'running' | 'complete' | 'failed') | null;
+  attempts?: number | null;
+  lastError?: string | null;
+  finishedAt?: string | null;
+  club?: (number | null) | Club;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "metrics".
+ */
+export interface Metric {
+  id: number;
+  kind: 'club-view' | 'signup-click' | 'calendar-add' | 'campaign-view';
+  subject: string;
+  day: string;
+  count?: number | null;
+  key: string;
+  club?: (number | null) | Club;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invitations".
+ */
+export interface Invitation {
+  id: number;
+  email: string;
+  role: 'member' | 'editor';
+  club?: (number | null) | Club;
+  tokenHash: string;
+  expiresAt: string;
+  acceptedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-requests".
+ */
+export interface ContactRequest {
+  id: number;
+  subject: string;
+  email: string;
+  club?: (number | null) | Club;
+  message: string;
+  state?: ('new' | 'in-progress' | 'resolved') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "link-checks".
+ */
+export interface LinkCheck {
+  id: number;
+  url: string;
+  club?: (number | null) | Club;
+  state: 'healthy' | 'review' | 'failed';
+  statusCode?: number | null;
+  checkedAt?: string | null;
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1098,6 +1418,50 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'stories';
+        value: number | Story;
+      } | null)
+    | ({
+        relationTo: 'campaigns';
+        value: number | Campaign;
+      } | null)
+    | ({
+        relationTo: 'benefits';
+        value: number | Benefit;
+      } | null)
+    | ({
+        relationTo: 'registrations';
+        value: number | Registration;
+      } | null)
+    | ({
+        relationTo: 'interests';
+        value: number | Interest;
+      } | null)
+    | ({
+        relationTo: 'audit-log';
+        value: number | AuditLog;
+      } | null)
+    | ({
+        relationTo: 'publish-jobs';
+        value: number | PublishJob;
+      } | null)
+    | ({
+        relationTo: 'metrics';
+        value: number | Metric;
+      } | null)
+    | ({
+        relationTo: 'invitations';
+        value: number | Invitation;
+      } | null)
+    | ({
+        relationTo: 'contact-requests';
+        value: number | ContactRequest;
+      } | null)
+    | ({
+        relationTo: 'link-checks';
+        value: number | LinkCheck;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -1340,6 +1704,15 @@ export interface ClubsSelect<T extends boolean = true> {
         gallery?: T;
         committee?: T;
       };
+  discovery?:
+    | T
+    | {
+        environment?: T;
+        commitment?: T;
+        costGuide?: T;
+        beginnerFriendly?: T;
+        verifiedAt?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1364,6 +1737,19 @@ export interface EventsSelect<T extends boolean = true> {
   signupCloses?: T;
   cover?: T;
   description?: T;
+  registrationMode?: T;
+  cancelled?: T;
+  cancellationReason?: T;
+  organizerContact?: T;
+  prerequisites?: T;
+  itinerary?: T;
+  packingList?: T;
+  activity?: T;
+  beginnerFriendly?: T;
+  reviewState?: T;
+  externalId?: T;
+  seriesId?: T;
+  archived?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1378,6 +1764,8 @@ export interface AlbumsSelect<T extends boolean = true> {
   event?: T;
   date?: T;
   photos?: T;
+  summary?: T;
+  photoCredit?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1392,6 +1780,8 @@ export interface PeopleSelect<T extends boolean = true> {
   ay?: T;
   photo?: T;
   contact?: T;
+  displayOrder?: T;
+  archived?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1533,6 +1923,8 @@ export interface ResourcesSelect<T extends boolean = true> {
   description?: T;
   club?: T;
   ay?: T;
+  audience?: T;
+  category?: T;
   prefix?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1553,6 +1945,8 @@ export interface ResourcesSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   club?: T;
+  credit?: T;
+  caption?: T;
   prefix?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1608,6 +2002,8 @@ export interface UsersSelect<T extends boolean = true> {
   name?: T;
   role?: T;
   club?: T;
+  active?: T;
+  requiresReview?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1624,6 +2020,173 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stories_select".
+ */
+export interface StoriesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  club?: T;
+  summary?: T;
+  cover?: T;
+  body?: T;
+  album?: T;
+  destination?: T;
+  latitude?: T;
+  longitude?: T;
+  author?: T;
+  photoCredit?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "campaigns_select".
+ */
+export interface CampaignsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  intro?: T;
+  startsAt?: T;
+  endsAt?: T;
+  venue?: T;
+  cover?: T;
+  body?: T;
+  clubs?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "benefits_select".
+ */
+export interface BenefitsSelect<T extends boolean = true> {
+  title?: T;
+  club?: T;
+  description?: T;
+  eligibility?: T;
+  url?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "registrations_select".
+ */
+export interface RegistrationsSelect<T extends boolean = true> {
+  reference?: T;
+  event?: T;
+  club?: T;
+  user?: T;
+  status?: T;
+  checkedInAt?: T;
+  checkInTokenHash?: T;
+  checkInExpiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "interests_select".
+ */
+export interface InterestsSelect<T extends boolean = true> {
+  user?: T;
+  event?: T;
+  club?: T;
+  key?: T;
+  consentedAt?: T;
+  active?: T;
+  lastNotifiedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-log_select".
+ */
+export interface AuditLogSelect<T extends boolean = true> {
+  action?: T;
+  actor?: T;
+  club?: T;
+  collectionName?: T;
+  documentId?: T;
+  details?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "publish-jobs_select".
+ */
+export interface PublishJobsSelect<T extends boolean = true> {
+  paths?: T;
+  state?: T;
+  attempts?: T;
+  lastError?: T;
+  finishedAt?: T;
+  club?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "metrics_select".
+ */
+export interface MetricsSelect<T extends boolean = true> {
+  kind?: T;
+  subject?: T;
+  day?: T;
+  count?: T;
+  key?: T;
+  club?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invitations_select".
+ */
+export interface InvitationsSelect<T extends boolean = true> {
+  email?: T;
+  role?: T;
+  club?: T;
+  tokenHash?: T;
+  expiresAt?: T;
+  acceptedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-requests_select".
+ */
+export interface ContactRequestsSelect<T extends boolean = true> {
+  subject?: T;
+  email?: T;
+  club?: T;
+  message?: T;
+  state?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "link-checks_select".
+ */
+export interface LinkChecksSelect<T extends boolean = true> {
+  url?: T;
+  club?: T;
+  state?: T;
+  statusCode?: T;
+  checkedAt?: T;
+  note?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1673,6 +2236,14 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface SiteSetting {
   id: number;
+  /**
+   * Current committee year, e.g. AY26/27. Empty follows the Singapore academic calendar.
+   */
+  currentAcademicYear?: string | null;
+  /**
+   * Enable only when the committee monitors Contact requests in the CMS.
+   */
+  contactFormEnabled?: boolean | null;
   /**
    * The big line at the top. Defaults to "SMUXploration Crew".
    */
@@ -2283,6 +2854,8 @@ export interface SiteSetting {
  * via the `definition` "siteSettings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
+  currentAcademicYear?: T;
+  contactFormEnabled?: T;
   heroHeading?: T;
   motto?: T;
   heroImages?: T;

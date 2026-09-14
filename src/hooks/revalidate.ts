@@ -1,112 +1,95 @@
 import { revalidatePath } from 'next/cache.js'
-import type { Payload } from 'payload'
-
-/**
- * Every public page is pre-rendered, so nothing a club edits appears on the site until
- * its path is revalidated. These hooks are what keep that guarantee from reading as
- * "the CMS is broken".
- */
+import { after } from 'next/server'
+import type { Payload, PayloadRequest } from 'payload'
 
 interface HookDoc {
+  id?: number | string
   _status?: string | null
   slug?: string | null
-  club?: number | string | { slug?: string | null } | null
+  club?: number | string | { id?: number; slug?: string | null } | null
 }
-
-interface HookArgs {
+interface Args {
   doc: HookDoc
   previousDoc?: HookDoc
-  req: { payload: Payload }
+  req: PayloadRequest
 }
-
-/**
- * `revalidatePath` only works inside a Next.js request context. The seed script and
- * the Payload CLI drive the same hooks from plain Node, where it throws — and a failed
- * revalidation must never abort the write that triggered it.
- */
-const safeRevalidate = (path: string, type?: 'layout' | 'page'): void => {
-  try {
-    if (type) revalidatePath(path, type)
-    else revalidatePath(path)
-  } catch {
-    // Outside a request context (seed, CLI). The next build renders it fresh anyway.
+/** A layout invalidation covers populated media/club relationships, old owners and metadata.
+ * The six-club site favors correctness over maintaining an incomplete consumer list. */
+export const publicationPaths = (
+  collection: string,
+  doc: HookDoc,
+  previous?: HookDoc,
+): string[] => {
+  const paths = new Set([
+    '/',
+    '/clubs',
+    '/events',
+    '/calendar',
+    '/gallery',
+    '/committee',
+    '/sitemap.xml',
+    '/search',
+    '/explore',
+    '/join',
+    '/recruitment',
+    '/benefits',
+  ])
+  for (const item of [doc, previous]) {
+    if (!item) continue
+    if (item.slug && ['events', 'clubs', 'stories', 'campaigns'].includes(collection))
+      paths.add(
+        `/${collection === 'campaigns' ? 'recruitment' : collection}/${encodeURIComponent(item.slug)}`,
+      )
+    if (item.slug && collection === 'pages') paths.add(`/${item.slug}`)
+    if (collection === 'albums' && item.id) paths.add(`/gallery/${item.id}`)
   }
+  return [...paths]
 }
-
-/** Resolve a club slug whether the relationship came back populated or as a bare id. */
-const clubSlug = async (club: HookDoc['club'], payload: Payload): Promise<string | null> => {
-  if (club === null || club === undefined) return null
-  if (typeof club === 'object') return club.slug ?? null
-
-  try {
-    const doc = await payload.findByID({ collection: 'clubs', id: club, depth: 0 })
-    return (doc as { slug?: string })?.slug ?? null
-  } catch {
-    return null
+export const publicationHook =
+  (collection: string) =>
+  async ({ doc, previousDoc, req }: Args) => {
+    if (req.context?.skipPublication) return doc
+    if (
+      ['events', 'clubs', 'pages', 'stories', 'campaigns'].includes(collection) &&
+      doc._status !== 'published' &&
+      previousDoc?._status !== 'published'
+    )
+      return doc
+    const paths = publicationPaths(collection, doc, previousDoc)
+    try {
+      revalidatePath('/', 'layout')
+    } catch {
+      /* CLI writes are picked up by the persistent publication queue. */
+    }
+    try {
+      await req.payload.create({
+        collection: 'publish-jobs',
+        data: {
+          paths,
+          state: 'pending',
+          attempts: 0,
+          club: typeof doc.club === 'object' ? doc.club?.id : (doc.club as number) || undefined,
+        },
+        req,
+        overrideAccess: true,
+        context: { skipPublication: true },
+      })
+      try {
+        after(async () => {
+          const { processPublicationJobs } = await import('@/lib/jobs')
+          await processPublicationJobs(req.payload)
+        })
+      } catch {
+        /* CLI has no request lifecycle; jobs remain pending for the worker. */
+      }
+    } catch (error) {
+      req.payload.logger.error({ msg: 'Could not enqueue publication refresh', err: error })
+      throw error
+    }
+    return doc
   }
-}
-
-/**
- * Drafts fire afterChange on every autosave. Revalidating on those would both hammer
- * the cache while someone is mid-sentence and push unpublished copy onto the live site,
- * so only published documents count — plus the transition where something was just
- * unpublished, which must also disappear from the site.
- */
-const shouldRevalidate = (doc: HookDoc, previousDoc?: HookDoc): boolean => {
-  return doc?._status === 'published' || previousDoc?._status === 'published'
-}
-
-export const revalidateClub = async ({ doc, previousDoc }: HookArgs) => {
-  if (!shouldRevalidate(doc, previousDoc)) return doc
-
-  if (doc?.slug) safeRevalidate(`/clubs/${doc.slug}`)
-  // A renamed slug leaves the old path cached behind it.
-  if (previousDoc?.slug && previousDoc.slug !== doc?.slug) {
-    safeRevalidate(`/clubs/${previousDoc.slug}`)
-  }
-  safeRevalidate('/')
-  safeRevalidate('/events')
-
-  return doc
-}
-
-export const revalidateEvent = async ({ doc, previousDoc, req }: HookArgs) => {
-  if (!shouldRevalidate(doc, previousDoc)) return doc
-
-  if (doc?.slug) safeRevalidate(`/events/${doc.slug}`)
-  if (previousDoc?.slug && previousDoc.slug !== doc?.slug) {
-    safeRevalidate(`/events/${previousDoc.slug}`)
-  }
-  safeRevalidate('/events')
-  safeRevalidate('/calendar')
-  safeRevalidate('/')
-
-  // An event also surfaces in its club's "upcoming events" section.
-  const slug = await clubSlug(doc?.club, req.payload)
-  if (slug) safeRevalidate(`/clubs/${slug}`)
-
-  return doc
-}
-
-/** Albums feed the gallery and the club page's past-trips strip. */
-export const revalidateAlbum = async ({ doc, req }: HookArgs) => {
-  safeRevalidate('/gallery')
-  const slug = await clubSlug(doc?.club, req.payload)
-  if (slug) safeRevalidate(`/clubs/${slug}`)
-  return doc
-}
-
-/** Pages are addressed by slug: /about, /join, /contact. */
-export const revalidatePage = async ({ doc, previousDoc }: HookArgs) => {
-  if (doc?.slug) safeRevalidate(`/${doc.slug}`)
-  if (previousDoc?.slug && previousDoc.slug !== doc?.slug) {
-    safeRevalidate(`/${previousDoc.slug}`)
-  }
-  return doc
-}
-
-/** Site settings touch the header, footer and home page, so everything goes. */
-export const revalidateSiteSettings = async ({ doc }: { doc: HookDoc }) => {
-  safeRevalidate('/', 'layout')
-  return doc
-}
+export const revalidateClub = publicationHook('clubs')
+export const revalidateEvent = publicationHook('events')
+export const revalidateAlbum = publicationHook('albums')
+export const revalidatePage = publicationHook('pages')
+export const revalidateSiteSettings = publicationHook('siteSettings')

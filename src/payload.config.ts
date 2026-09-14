@@ -18,13 +18,18 @@ import sharp from 'sharp'
 import { Albums } from './collections/Albums'
 import { Clubs } from './collections/Clubs'
 import { Events } from './collections/Events'
+import { enhanceCollection } from './collections/enhance'
 import { Media } from './collections/Media'
+import { OperationsCollections } from './collections/Operations'
 import { Pages } from './collections/Pages'
 import { People } from './collections/People'
 import { Resources } from './collections/Resources'
 import { Users } from './collections/Users'
 import { SiteSettings } from './globals/SiteSettings'
+import { validateEnvironment } from './lib/environment'
 import { RICH_TEXT_STATES } from './lib/richTextStates'
+
+validateEnvironment()
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -130,6 +135,10 @@ const storagePlugins = r2Configured
 export default buildConfig({
   admin: {
     user: Users.slug,
+    components: {
+      beforeDashboard: ['/components/admin/Dashboard#Dashboard'],
+      beforeNavLinks: ['/components/admin/AdminLinks#AdminLinks'],
+    },
     importMap: {
       baseDir: path.resolve(dirname),
     },
@@ -138,7 +147,9 @@ export default buildConfig({
       description: 'Content management for SMUXploration Crew.',
     },
   },
-  collections: [Clubs, Events, Albums, People, Pages, Resources, Media, Users],
+  collections: [Clubs, Events, Albums, People, Pages, Resources, Media, Users]
+    .map(enhanceCollection)
+    .concat(OperationsCollections),
   globals: [SiteSettings],
   /**
    * The editor is configured for people who are not developers and will not read docs.
@@ -210,12 +221,14 @@ export default buildConfig({
      * The schema is applied from a developer machine; production only reads and writes
      * rows.
      */
-    push: !isProduction,
+    push: process.env.SMUX_ALLOW_SCHEMA_PUSH === 'true',
+    migrationDir: path.resolve(dirname, 'migrations'),
     pool: {
       connectionString: databaseUrl,
     },
   }),
   sharp,
+  upload: { limits: { fileSize: 15 * 1024 * 1024 }, abortOnLimit: true },
   ...(email ? { email } : {}),
   graphQL: {
     // The playground is a development convenience; in production it is an interactive

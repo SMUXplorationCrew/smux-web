@@ -84,7 +84,6 @@ export const Media: CollectionConfig = {
         // it. Defaulting it here keeps ownership consistent with `ownClub`.
         beforeChange: [
           ({ req: { user }, value }) => {
-            if (value) return value
             if (user?.role === 'editor') return resolveClubId(user.club)
             return value
           },
