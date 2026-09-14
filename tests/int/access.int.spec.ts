@@ -14,15 +14,26 @@ import config from '@/payload.config'
  * the real ones instead, which would have wiped seeded content along with every event,
  * album and photo pointing at them. This reads the existing clubs and only ever creates
  * and removes its own `int-test-` events and users.
+ *
+ * One test has to write to a real club row: proving `ownClub` resolves for a collection
+ * with no `club` field needs Postgres to run the query, and no throwaway club can exist
+ * to run it against. That test captures the tagline first and puts it back afterwards.
+ * An earlier version did not, and left "Edited by the Trekking editor" on the live
+ * Trekking club in every database the suite had ever been pointed at.
  */
 
 let payload: Payload
 let divingId: number | string
 let trekkingId: number | string
+let trekkingTagline: string | null | undefined
 let trekkingEditor: Record<string, unknown>
 let memberUser: Record<string, unknown>
 
 const EMAILS = ['int-trekking@smux.test', 'int-member@smux.test']
+
+// Obviously a test value, so that if a restore is ever missed the contamination is
+// greppable rather than looking like real copy.
+const TAGLINE_SENTINEL = 'int-test tagline — restored by access.int.spec.ts'
 
 const findClub = async (slug: string) => {
   const { docs } = await payload.find({
@@ -34,7 +45,7 @@ const findClub = async (slug: string) => {
   if (!docs[0]) {
     throw new Error(`No "${slug}" club found. Run \`pnpm seed\` before the integration tests.`)
   }
-  return docs[0].id
+  return docs[0]
 }
 
 const cleanup = async () => {
@@ -42,12 +53,27 @@ const cleanup = async () => {
   await payload.delete({ collection: 'users', where: { email: { in: EMAILS } } })
 }
 
+// Put the tagline back exactly as it was found. Called by the test that changes it and
+// again in afterAll, so a failed assertion mid-test still restores the row.
+const restoreTrekkingTagline = async () => {
+  if (trekkingTagline === undefined) return
+  await payload.update({
+    collection: 'clubs',
+    id: trekkingId,
+    data: { tagline: trekkingTagline },
+    overrideAccess: true,
+  })
+}
+
 beforeAll(async () => {
   payload = await getPayload({ config })
   await cleanup()
 
-  divingId = await findClub('diving')
-  trekkingId = await findClub('trekking')
+  const diving = await findClub('diving')
+  const trekking = await findClub('trekking')
+  divingId = diving.id
+  trekkingId = trekking.id
+  trekkingTagline = trekking.tagline ?? null
 
   await payload.create({
     collection: 'events',
@@ -87,6 +113,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  await restoreTrekkingTagline()
   await cleanup()
 })
 
@@ -159,11 +186,13 @@ describe('club document editing', () => {
     const updated = await payload.update({
       collection: 'clubs',
       id: trekkingId,
-      data: { tagline: 'Edited by the Trekking editor' },
+      data: { tagline: TAGLINE_SENTINEL },
       user: trekkingEditor as never,
       overrideAccess: false,
     })
-    expect(updated.tagline).toBe('Edited by the Trekking editor')
+    expect(updated.tagline).toBe(TAGLINE_SENTINEL)
+
+    await restoreTrekkingTagline()
   })
 
   it('stops that editor updating another club', async () => {
