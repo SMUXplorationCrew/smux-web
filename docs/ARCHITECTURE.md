@@ -40,12 +40,13 @@ content. The dynamic (`ƒ`) routes are the deliberate exceptions:
 | `/calendar/feed`, `/events/[slug]/calendar` | ICS responses with per-request headers |
 | `/events/return` | Post-signup return handling |
 
-`/benefits` carries `export const revalidate = 300`. It is the only page on a timer and
-it is also in the publication path list, so the timer is redundant with hook-driven
-revalidation. Left as-is deliberately — see [the note in HANDOFF.md](HANDOFF.md).
+No public page uses time-based revalidation. `/benefits` did, with
+`export const revalidate = 300`, which served stale content for five minutes despite the
+page already being in the publication path list — the hook refreshes it like everything
+else. It was removed rather than documented as an exception.
 
-Do not reach for `force-dynamic` or a client-side fetch to solve a caching problem.
-That trades the guarantee above for a quick fix.
+Do not reach for `force-dynamic`, a client-side fetch, or a revalidate timer to solve a
+caching problem. Each trades the guarantee above for a quick fix.
 
 ## Reading data
 
